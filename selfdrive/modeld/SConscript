@@ -58,6 +58,11 @@ else:
     # no SNPE on Mac
     del libs[libs.index('SNPE')]
     del common_src[common_src.index('runners/snpemodel.cc')]
+    
+  if arch == "aarch64":
+    # no SNPE on NVIDIA Jetson Nano
+    del libs[libs.index('SNPE')]
+    del common_src[common_src.index('runners/snpemodel.cc')]
 
 common_model = lenv.Object(common_src)
 
