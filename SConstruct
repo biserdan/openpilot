@@ -98,6 +98,26 @@ if arch == "larch64":
   cflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   cxxflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   rpath += ["/usr/local/lib"]
+# NVIDIA Jetson Nano
+elif arch == "aarch64":
+  cpppath = [
+    "#third_party/opencl/include",
+  ]
+
+  libpath = [
+    "/usr/local/lib",
+    "/usr/lib",
+    "/system/vendor/lib64",
+    f"#third_party/acados/{arch}/lib",
+    "#third_party/libyuv/larch64/lib",
+    "/usr/lib/aarch64-linux-gnu"
+  ]
+  cpppath += [
+    "#selfdrive/camerad/include",
+  ]
+  cflags = ["-mcpu=cortex-a57"]
+  cxxflags = ["-mcpu=cortex-a57"]
+  rpath += ["/usr/local/lib"]
 else:
   cflags = []
   cxxflags = []
@@ -297,7 +317,7 @@ else:
   qt_dirs += [f"/usr/include/{real_arch}-linux-gnu/qt5/Qt{m}" for m in qt_modules]
 
   qt_libs = [f"Qt5{m}" for m in qt_modules]
-  if arch == "larch64":
+  if arch == "larch64" or arch == "aarch64":
     qt_libs += ["GLESv2", "wayland-client"]
   elif arch != "Darwin":
     qt_libs += ["GL"]
