@@ -65,7 +65,6 @@ lenv = {
   "PATH": os.environ['PATH'],
   "LD_LIBRARY_PATH": [Dir(f"#third_party/acados/{arch}/lib").abspath],
   "PYTHONPATH": Dir("#").abspath + ":" + Dir("#pyextra/").abspath,
-  "LIBRARY_PATH": [Dir(f"#third_party/acados/include").abspath],
 
   "ACADOS_SOURCE_DIR": Dir("#third_party/acados/include/acados").abspath,
   "ACADOS_PYTHON_INTERFACE_PATH": Dir("#pyextra/acados_template").abspath,
