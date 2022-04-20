@@ -317,7 +317,7 @@ else:
   qt_dirs += [f"/usr/include/{real_arch}-linux-gnu/qt5/Qt{m}" for m in qt_modules]
 
   qt_libs = [f"Qt5{m}" for m in qt_modules]
-  if arch == "larch64" or arch == "aarch64":
+  if arch == "larch64":
     qt_libs += ["GLESv2", "wayland-client"]
   elif arch != "Darwin":
     qt_libs += ["GL"]
