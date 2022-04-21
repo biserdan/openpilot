@@ -8,8 +8,8 @@ from multiprocessing import Process, Queue
 from typing import Any
 
 import numpy as np
-import pyopencl as cl
-import pyopencl.array as cl_array
+# import pyopencl as cl
+# import pyopencl.array as cl_array
 from lib.can import can_function
 
 import cereal.messaging as messaging
