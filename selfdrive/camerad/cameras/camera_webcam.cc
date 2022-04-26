@@ -147,6 +147,12 @@ void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_i
   s->pm = new PubMaster({"roadCameraState", "driverCameraState", "thumbnail"});
 }
 
+void camera_rc_init(VisionIpcServer* v, MultiCameraState* s, cl_device_id device_id, cl_context ctx) {
+    camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, device_id, ctx,
+        VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
+    s->pm = new PubMaster({ "roadCameraState", "thumbnail" });
+}
+
 void camera_autoexposure(CameraState *s, float grey_frac) {}
 
 void cameras_open(MultiCameraState *s) {
@@ -156,10 +162,21 @@ void cameras_open(MultiCameraState *s) {
   camera_open(&s->road_cam, true);
 }
 
+void camera_rc_open(MultiCameraState* s) {
+    // LOG("*** open road camera ***");
+    camera_open(&s->road_cam, true);
+}
+
 void cameras_close(MultiCameraState *s) {
   camera_close(&s->road_cam);
   camera_close(&s->driver_cam);
   delete s->pm;
+}
+
+void camera_rc_close(MultiCameraState* s) {
+    camera_close(&s->road_cam);
+    camera_close(&s->driver_cam);
+    delete s->pm;
 }
 
 void process_driver_camera(MultiCameraState *s, CameraState *c, int cnt) {
@@ -194,4 +211,16 @@ void cameras_run(MultiCameraState *s) {
   for (auto &t : threads) t.join();
 
   cameras_close(s);
+}
+
+void camera_rc_run(MultiCameraState* s) {
+    std::thread t_process = start_process_thread(s, &s->road_cam, process_road_camera);
+
+    std::thread t_rear = std::thread(road_camera_thread, &s->road_cam);
+    util::set_thread_name("webcam_thread");
+
+    t_rear.join();
+    t_process.join();
+
+    camera_rc_close(s);
 }

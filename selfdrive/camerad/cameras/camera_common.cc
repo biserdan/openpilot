@@ -430,12 +430,22 @@ void camerad_thread() {
   MultiCameraState cameras = {};
   VisionIpcServer vipc_server("camerad", device_id, context);
 
-  cameras_init(&vipc_server, &cameras, device_id, context);
-  cameras_open(&cameras);
+  if (std::getenv("DISABLE_DRIVER")) {
+      camera_rc_init(&vipc_server, &cameras, device_id, context);
+      camera_rc_open(&cameras);
 
-  vipc_server.start_listener();
+      vipc_server.start_listener();
 
-  cameras_run(&cameras);
+      camera_rc_run(&cameras);
+  }
+  else {
+      cameras_init(&vipc_server, &cameras, device_id, context);
+      cameras_open(&cameras);
+
+      vipc_server.start_listener();
+
+      cameras_run(&cameras);
+  }
 
   CL_CHECK(clReleaseContext(context));
 }
