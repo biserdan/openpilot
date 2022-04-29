@@ -10,6 +10,10 @@ maps = arch in ['larch64', 'x86_64', 'aarch64']
 if maps and arch == 'x86_64':
   rpath = [Dir(f"#third_party/mapbox-gl-native-qt/{arch}").srcnode().abspath]
   qt_env["RPATH"] += rpath
+  
+if maps and arch == 'aarch64':
+  rpath = [Dir(f"#third_party/mapbox-gl-native-qt/{arch}").srcnode().abspath]
+  qt_env["RPATH"] += rpath
 
 if arch == "Darwin":
   del base_libs[base_libs.index('OpenCL')]
