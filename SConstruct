@@ -110,7 +110,7 @@ elif arch == "aarch64":
     "/system/vendor/lib64",
     f"#third_party/acados/{arch}/lib",
     "#third_party/libyuv/larch64/lib",
-    "#third_party/mapbox-gl-native-qt/x86_64",
+    "#third_party/mapbox-gl-native-qt/aarch64",
     "/usr/lib/aarch64-linux-gnu"
   ]
   cpppath += [
