@@ -234,11 +234,13 @@ env = Environment(
     "#opendbc/can",
     "#selfdrive/boardd",
     "#selfdrive/common",
+    "/usr/local/cuda/lib64"
   ],
   CYTHONCFILESUFFIX=".cpp",
   COMPILATIONDB_USE_ABSPATH=True,
-  tools=["default", "cython", "compilation_db"],
+  tools=["default", "cython", "compilation_db", "cuda"],
 )
+
 
 if arch == "Darwin":
   env['RPATHPREFIX'] = "-rpath "
