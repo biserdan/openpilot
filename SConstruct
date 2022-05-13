@@ -347,19 +347,14 @@ Export('common', 'gpucommon')
 # cereal and messaging are shared with the system
 SConscript(['cereal/SConscript'])
 if SHARED:
-  print('Shared True')
   cereal = abspath([File('cereal/libcereal_shared.so')])
   messaging = abspath([File('cereal/libmessaging_shared.so')])
 else:
-  print('Shared False')
   cereal = [File('#cereal/libcereal.a')]
   messaging = [File('#cereal/libmessaging.a')]
   visionipc = [File('#cereal/libvisionipc.a')]
-  # cuda1 = [File('selfdrive/modeld/transforms/hello_cuda.o')]
 
-# Export('cereal', 'messaging', 'visionipc', 'cuda1')
 Export('cereal', 'messaging', 'visionipc')
-# Build rednose library and ekf models
 
 rednose_config = {
   'generated_folder': '#selfdrive/locationd/models/generated',

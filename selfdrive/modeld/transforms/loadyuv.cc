@@ -1,10 +1,13 @@
 #include "selfdrive/modeld/transforms/loadyuv.h"
+#include "selfdrive/modeld/transforms/hello_cuda.cuh"
 
 #include <cassert>
 #include <cstdio>
 #include <cstring>
 
 void loadyuv_init(LoadYUVState* s, cl_context ctx, cl_device_id device_id, int width, int height) {
+  fprintf(stdout, "loadyuv_init\n");
+  start_hello();
   memset(s, 0, sizeof(*s));
 
   s->width = width;
