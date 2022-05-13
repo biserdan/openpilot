@@ -133,8 +133,6 @@ else:
       "#selfdrive/common",
       "/usr/lib",
       "/usr/local/lib",
-      "/usr/local/cuda/lib64",
-      "/usr/local/cuda/include"
     ]
 
   rpath += [
@@ -199,7 +197,6 @@ env = Environment(
     "#third_party",
     "#cereal",
     "#opendbc/can",
-    "/usr/local/cuda/include",
   ],
 
   CC='clang',
@@ -219,7 +216,7 @@ env = Environment(
   ],
   CYTHONCFILESUFFIX=".cpp",
   COMPILATIONDB_USE_ABSPATH=True,
-  tools=["default", "cython", "compilation_db","cuda"],
+  tools=["default", "cython", "compilation_db"],
 )
 
 if arch == "Darwin":
@@ -347,18 +344,15 @@ Export('common', 'gpucommon')
 # cereal and messaging are shared with the system
 SConscript(['cereal/SConscript'])
 if SHARED:
-  print('Shared True')
   cereal = abspath([File('cereal/libcereal_shared.so')])
   messaging = abspath([File('cereal/libmessaging_shared.so')])
 else:
-  print('Shared False')
   cereal = [File('#cereal/libcereal.a')]
   messaging = [File('#cereal/libmessaging.a')]
   visionipc = [File('#cereal/libvisionipc.a')]
-  # cuda1 = [File('selfdrive/modeld/transforms/hello_cuda.o')]
 
-# Export('cereal', 'messaging', 'visionipc', 'cuda1')
 Export('cereal', 'messaging', 'visionipc')
+
 # Build rednose library and ekf models
 
 rednose_config = {
