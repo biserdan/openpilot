@@ -45,6 +45,9 @@ void transform_destroy(Transform* s) {
   CL_CHECK(clReleaseMemObject(s->m_y_cl));
   CL_CHECK(clReleaseMemObject(s->m_uv_cl));
   CL_CHECK(clReleaseKernel(s->krnl));
+
+  checkMsg(cudaFreeHost((void *)s->m_y_cuda_h));
+  checkMsg(cudaFreeHost((void *)s->m_uv_cuda_h));
 }
 
 void transform_queue(Transform* s,

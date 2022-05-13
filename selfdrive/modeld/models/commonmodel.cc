@@ -77,6 +77,11 @@ ModelFrame::~ModelFrame() {
   CL_CHECK(clReleaseMemObject(u_cl));
   CL_CHECK(clReleaseMemObject(y_cl));
   CL_CHECK(clReleaseCommandQueue(q));
+
+  checkMsg(cudaFreeHost((void *)net_input_cuda_h));
+  checkMsg(cudaFreeHost((void *)v_cuda_h));
+  checkMsg(cudaFreeHost((void *)u_cuda_h));
+  checkMsg(cudaFreeHost((void *)y_cuda_h));
 }
 
 void softmax(const float* input, float* output, size_t len) {
