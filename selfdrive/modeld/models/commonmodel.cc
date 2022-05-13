@@ -9,6 +9,24 @@
 #include "selfdrive/common/mat.h"
 #include "selfdrive/common/timing.h"
 
+inline void __checkMsg(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA error: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+    exit(-1);
+  }
+}
+inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+  }
+}
+
 ModelFrame::ModelFrame(cl_device_id device_id, cl_context context) {
   input_frames = std::make_unique<float[]>(buf_size);
 
@@ -17,6 +35,15 @@ ModelFrame::ModelFrame(cl_device_id device_id, cl_context context) {
   u_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
   v_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
   net_input_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_FRAME_SIZE * sizeof(float), NULL, &err));
+
+  checkMsg(cudaHostAlloc((void **)&y_cuda_h, MODEL_WIDTH * MODEL_HEIGHT, cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&y_cuda_d, (void *)y_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void **)&u_cuda_h, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&u_cuda_d, (void *)u_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void **)&v_cuda_h, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&v_cuda_d, (void *)v_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void **)&net_input_cuda_h, MODEL_FRAME_SIZE * sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&net_input_cuda_d, (void *)net_input_cuda_h, 0));
 
   transform_init(&transform, context, device_id);
   loadyuv_init(&loadyuv, context, device_id, MODEL_WIDTH, MODEL_HEIGHT);

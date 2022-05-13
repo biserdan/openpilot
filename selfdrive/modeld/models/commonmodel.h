@@ -12,9 +12,15 @@
 #include <CL/cl.h>
 #endif
 
+#include "cuda_runtime.h"
+#include "cuda_runtime_api.h"
+
 #include "selfdrive/common/mat.h"
 #include "selfdrive/modeld/transforms/loadyuv.h"
 #include "selfdrive/modeld/transforms/transform.h"
+
+#define checkMsg(msg) __checkMsg(msg, __FILE__, __LINE__)
+#define checkMsgNoFail(msg) __checkMsgNoFail(msg, __FILE__, __LINE__)
 
 const bool send_raw_pred = getenv("SEND_RAW_PRED") != NULL;
 
@@ -37,5 +43,9 @@ private:
   LoadYUVState loadyuv;
   cl_command_queue q;
   cl_mem y_cl, u_cl, v_cl, net_input_cl;
+  uint16_t *y_cuda_h, *y_cuda_d;
+  uint16_t *u_cuda_h, *u_cuda_d;
+  uint16_t *v_cuda_h , *v_cuda_d;
+  uint16_t *net_input_cuda_h, *net_input_cuda_d;
   std::unique_ptr<float[]> input_frames;
 };

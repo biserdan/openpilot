@@ -6,6 +6,24 @@
 
 #include "selfdrive/common/clutil.h"
 
+inline void __checkMsg(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA error: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+    exit(-1);
+  }
+}
+inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+  }
+}
+
 void transform_init(Transform* s, cl_context ctx, cl_device_id device_id) {
   memset(s, 0, sizeof(*s));
 
@@ -16,6 +34,11 @@ void transform_init(Transform* s, cl_context ctx, cl_device_id device_id) {
 
   s->m_y_cl = CL_CHECK_ERR(clCreateBuffer(ctx, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));
   s->m_uv_cl = CL_CHECK_ERR(clCreateBuffer(ctx, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));
+
+  checkMsg(cudaHostAlloc((void **)&s->m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&s->m_y_cuda_d, (void *)s->m_y_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void **)&s->m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&s->m_uv_cuda_d, (void *)s->m_uv_cuda_h, 0));
 }
 
 void transform_destroy(Transform* s) {
