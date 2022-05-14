@@ -55,7 +55,10 @@ float* ModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_height, con
                   y_cl, u_cl, v_cl, MODEL_WIDTH, MODEL_HEIGHT, projection);
 
   if (output == NULL) {
-    loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, net_input_cl);
+    // biserdan: openCL
+    // loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, net_input_cl);
+    // biserdan: CUDA
+    loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d);
 
     std::memmove(&input_frames[0], &input_frames[MODEL_FRAME_SIZE], sizeof(float) * MODEL_FRAME_SIZE);
     CL_CHECK(clEnqueueReadBuffer(q, net_input_cl, CL_TRUE, 0, MODEL_FRAME_SIZE * sizeof(float), &input_frames[MODEL_FRAME_SIZE], 0, nullptr, nullptr));

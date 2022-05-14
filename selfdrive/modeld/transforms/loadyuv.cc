@@ -1,5 +1,6 @@
 #include "selfdrive/modeld/transforms/loadyuv.h"
 #include "selfdrive/modeld/transforms/hello_cuda.cuh"
+#include "selfdrive/modeld/transforms/loadyuv.cuh"
 
 #include <cassert>
 #include <cstdio>
@@ -33,28 +34,47 @@ void loadyuv_destroy(LoadYUVState* s) {
   CL_CHECK(clReleaseKernel(s->loaduv_krnl));
   CL_CHECK(clReleaseKernel(s->copy_krnl));
 }
-
+// biserdan: openCL
+/*
 void loadyuv_queue(LoadYUVState* s, cl_command_queue q,
                    cl_mem y_cl, cl_mem u_cl, cl_mem v_cl,
                    cl_mem out_cl, bool do_shift) {
-  cl_int global_out_off = 0;
+*/
+// biserdan: CUDA
+void loadyuv_queue(LoadYUVState* s,uint16_t *y_cuda_d,
+                   uint16_t *u_cuda_d, uint16_t *v_cuda_d,
+                   uint16_t *out_cuda, bool do_shift = false) {
+  //cl_int global_out_off = 0;
+  size_t global_out_off = 0;
+  fprintf(stdout, "do_shift=%s\n",do_shift ? "true":"false");
+  // biserdan: not needed
+  /*
   if (do_shift) {
     // shift the image in slot 1 to slot 0, then place the new image in slot 1
     global_out_off += (s->width*s->height) + (s->width/2)*(s->height/2)*2;
     CL_CHECK(clSetKernelArg(s->copy_krnl, 0, sizeof(cl_mem), &out_cl));
     CL_CHECK(clSetKernelArg(s->copy_krnl, 1, sizeof(cl_int), &global_out_off));
     const size_t copy_work_size = global_out_off/8;
+    //printf("copy_work_size=%lu\n",copy_work_size);
+    //fprintf(stdout, "copy_work_size=%zu\n",copy_work_size);
     CL_CHECK(clEnqueueNDRangeKernel(q, s->copy_krnl, 1, NULL,
                                 &copy_work_size, NULL, 0, 0, NULL));
-  }
+  }*/
+  // biserdan: openCL
+  //CL_CHECK(clSetKernelArg(s->loadys_krnl, 0, sizeof(cl_mem), &y_cl));
+  //CL_CHECK(clSetKernelArg(s->loadys_krnl, 1, sizeof(cl_mem), &out_cl));
+  //CL_CHECK(clSetKernelArg(s->loadys_krnl, 2, sizeof(cl_int), &global_out_off));
+  //const size_t loadys_work_size = (s->width*s->height)/8;
+  const int loadys_work_size = (s->width*s->height)/8;
+  fprintf(stdout, "loadys_work_size=%zu\n",loadys_work_size);
+  
+  /*CL_CHECK(clEnqueueNDRangeKernel(q, s->loadys_krnl, 1, NULL,
+                               &loadys_work_size, NULL, 0, 0, NULL));*/
 
-  CL_CHECK(clSetKernelArg(s->loadys_krnl, 0, sizeof(cl_mem), &y_cl));
-  CL_CHECK(clSetKernelArg(s->loadys_krnl, 1, sizeof(cl_mem), &out_cl));
-  CL_CHECK(clSetKernelArg(s->loadys_krnl, 2, sizeof(cl_int), &global_out_off));
+  // biserdan: cuda loadys
+  start_loadys(y_cuda_d,out_cuda,&global_out_off,loadys_work_size,
+     s->width, s->height);
 
-  const size_t loadys_work_size = (s->width*s->height)/8;
-  CL_CHECK(clEnqueueNDRangeKernel(q, s->loadys_krnl, 1, NULL,
-                               &loadys_work_size, NULL, 0, 0, NULL));
 
   const size_t loaduv_work_size = ((s->width/2)*(s->height/2))/8;
   global_out_off += (s->width*s->height);

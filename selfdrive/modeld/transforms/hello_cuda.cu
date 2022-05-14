@@ -7,8 +7,6 @@
 #include <cuda_runtime.h>
 #include "hello_cuda.cuh"                            // cude.h is automatically included by nvcc...
 
-#define checkMsg(msg) __checkMsg(msg, __FILE__, __LINE__)
-#define checkMsgNoFail(msg) __checkMsgNoFail(msg, __FILE__, __LINE__)
 inline void __checkMsg(cudaError_t code, const char *file, const int line)
 {
   cudaError_t err = cudaGetLastError();
