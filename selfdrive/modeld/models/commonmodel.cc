@@ -65,7 +65,8 @@ float* ModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_height, con
     clFinish(q);
     return &input_frames[0];
   } else {
-    loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, *output, true);
+    loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d, true);
+    // loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, *output, true);
     // NOTE: Since thneed is using a different command queue, this clFinish is needed to ensure the image is ready.
     clFinish(q);
     return NULL;

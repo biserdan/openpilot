@@ -21,7 +21,8 @@ common_src = [
   "runners/snpemodel.cc",
   "transforms/loadyuv.cc",
   "transforms/transform.cc",
-  "transforms/hello_cuda.cu"
+  "transforms/hello_cuda.cu",
+  "transforms/loadyuv_cuda.cu"
 ]
 
 thneed_src = [

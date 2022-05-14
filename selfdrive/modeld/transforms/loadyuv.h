@@ -1,6 +1,7 @@
 #pragma once
-
+#include <math.h>
 #include "selfdrive/common/clutil.h"
+#include "selfdrive/common/mat.h"
 
 typedef struct {
   int width, height;
@@ -18,6 +19,6 @@ void loadyuv_queue(LoadYUVState* s, cl_command_queue q,
                    cl_mem out_cl, bool do_shift = false);
 */
 // biserdan: CUDA
-void loadyuv_queue(LoadYUVState* s,uint16_t *y_cuda_d,
-                   uint16_t *u_cuda_d, uint16_t *v_cuda_d,
-                   uint16_t *out_cuda, bool do_shift = false);
+void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
+                   uint8_t *u_cuda_d, uint8_t *v_cuda_d,
+                   float_t *out_cuda, bool do_shift = false);
