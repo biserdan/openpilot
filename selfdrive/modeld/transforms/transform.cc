@@ -24,16 +24,17 @@ inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
   }
 }
 
-void transform_init(Transform* s, cl_context ctx, cl_device_id device_id) {
+// void transform_init(Transform* s, cl_context ctx, cl_device_id device_id) {
+void transform_init(Transform* s) {
   memset(s, 0, sizeof(*s));
 
-  cl_program prg = cl_program_from_file(ctx, device_id, "transforms/transform.cl", "");
+  /*cl_program prg = cl_program_from_file(ctx, device_id, "transforms/transform.cl", "");
   s->krnl = CL_CHECK_ERR(clCreateKernel(prg, "warpPerspective", &err));
   // done with this
   CL_CHECK(clReleaseProgram(prg));
 
   s->m_y_cl = CL_CHECK_ERR(clCreateBuffer(ctx, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));
-  s->m_uv_cl = CL_CHECK_ERR(clCreateBuffer(ctx, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));
+  s->m_uv_cl = CL_CHECK_ERR(clCreateBuffer(ctx, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));*/
 
   checkMsg(cudaHostAlloc((void **)&s->m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&s->m_y_cuda_d, (void *)s->m_y_cuda_h, 0));
@@ -42,9 +43,9 @@ void transform_init(Transform* s, cl_context ctx, cl_device_id device_id) {
 }
 
 void transform_destroy(Transform* s) {
-  CL_CHECK(clReleaseMemObject(s->m_y_cl));
+  /*CL_CHECK(clReleaseMemObject(s->m_y_cl));
   CL_CHECK(clReleaseMemObject(s->m_uv_cl));
-  CL_CHECK(clReleaseKernel(s->krnl));
+  CL_CHECK(clReleaseKernel(s->krnl));*/
 
   checkMsg(cudaFreeHost((void *)s->m_y_cuda_h));
   checkMsg(cudaFreeHost((void *)s->m_uv_cuda_h));

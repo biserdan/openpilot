@@ -30,6 +30,7 @@ float sigmoid(float input);
 class ModelFrame {
 public:
   ModelFrame(cl_device_id device_id, cl_context context);
+  //ModelFrame();
   ~ModelFrame();
   float* prepare(cl_mem yuv_cl, int width, int height, const mat3& transform, cl_mem *output);
 

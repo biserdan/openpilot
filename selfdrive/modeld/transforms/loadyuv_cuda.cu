@@ -104,34 +104,49 @@ __global__ void loaduv(uint8_t const * const in,
   };
 
   // toDo
-  out[gid + out_offset / 8] = outv[0];
+  out[gid + 0 + out_offset / 8] = outv[0];
+  out[gid + 1 + out_offset / 8] = outv[0];
+  out[gid + 2 + out_offset / 8] = outv[0];
+  out[gid + 3 + out_offset / 8] = outv[0];
+  out[gid + 4 + out_offset / 8] = outv[0];
+  out[gid + 5 + out_offset / 8] = outv[0];
+  out[gid + 6 + out_offset / 8] = outv[0];
+  out[gid + 7 + out_offset / 8] = outv[0];
 }
-/*
-__global__ void copy(__global__ float * inout,
+
+__global__ void copy(float * inout,
                    int in_offset)
 {
-  const int gid = get_global_id(0);
-  inout[gid] = inout[gid + in_offset / 8];
+  const int gid = threadIdx.x;
+  inout[gid + 0] = inout[gid + 0 + in_offset / 8];
+  inout[gid + 1] = inout[gid + 1 + in_offset / 8];
+  inout[gid + 2] = inout[gid + 2 + in_offset / 8];
+  inout[gid + 3] = inout[gid + 3 + in_offset / 8];
+  inout[gid + 4] = inout[gid + 4 + in_offset / 8];
+  inout[gid + 5] = inout[gid + 5 + in_offset / 8];
+  inout[gid + 6] = inout[gid + 6 + in_offset / 8];
+  inout[gid + 7] = inout[gid + 7 + in_offset / 8];
 }
-*/
+
 void start_loadys(uint8_t *y_cuda_d, float_t *out_cuda, 
     size_t *global_out_off, const int loadys_work_size,
     int TRANSFORMED_WIDTH, int TRANSFORMED_HEIGHT)
 {
    int UV_SIZE = ((TRANSFORMED_WIDTH/2)*(TRANSFORMED_HEIGHT/2));
    loadys<<< 1, loadys_work_size >>>(y_cuda_d,out_cuda,static_cast<int>(*global_out_off),TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
-
    sleep(1);   // Necessary to give time to let GPU threads run !!!
-
 }
 
 void start_loaduv(uint8_t *u_cuda_d, float_t *out_cuda, 
-    size_t *global_out_off, const int loaduv_work_size,
-    int TRANSFORMED_WIDTH, int TRANSFORMED_HEIGHT)
+    size_t *global_out_off, const int loaduv_work_size)
 {
-   int UV_SIZE = ((TRANSFORMED_WIDTH/2)*(TRANSFORMED_HEIGHT/2));
    loaduv<<< 1, loaduv_work_size >>>(u_cuda_d,out_cuda,static_cast<int>(*global_out_off));
-
    sleep(1);   // Necessary to give time to let GPU threads run !!!
+}
 
+void start_copy(float_t *inout, 
+    size_t *in_offset, const int copy_work_size)
+{
+   copy<<< 1, copy_work_size >>>(inout,static_cast<int>(*in_offset));
+   sleep(1);   // Necessary to give time to let GPU threads run !!!
 }

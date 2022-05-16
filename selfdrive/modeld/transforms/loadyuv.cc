@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <cstring>
 
-void loadyuv_init(LoadYUVState* s, cl_context ctx, cl_device_id device_id, int width, int height) {
+void loadyuv_init(LoadYUVState* s, int width, int height) {
   fprintf(stdout, "loadyuv_init\n");
   start_hello();
   memset(s, 0, sizeof(*s));
@@ -14,7 +14,7 @@ void loadyuv_init(LoadYUVState* s, cl_context ctx, cl_device_id device_id, int w
   s->width = width;
   s->height = height;
 
-  char args[1024];
+  /*char args[1024];
   snprintf(args, sizeof(args),
            "-cl-fast-relaxed-math -cl-denorms-are-zero "
            "-DTRANSFORMED_WIDTH=%d -DTRANSFORMED_HEIGHT=%d",
@@ -26,13 +26,13 @@ void loadyuv_init(LoadYUVState* s, cl_context ctx, cl_device_id device_id, int w
   s->copy_krnl = CL_CHECK_ERR(clCreateKernel(prg, "copy", &err));
 
   // done with this
-  CL_CHECK(clReleaseProgram(prg));
+  CL_CHECK(clReleaseProgram(prg));*/
 }
 
 void loadyuv_destroy(LoadYUVState* s) {
-  CL_CHECK(clReleaseKernel(s->loadys_krnl));
+  /*CL_CHECK(clReleaseKernel(s->loadys_krnl));
   CL_CHECK(clReleaseKernel(s->loaduv_krnl));
-  CL_CHECK(clReleaseKernel(s->copy_krnl));
+  CL_CHECK(clReleaseKernel(s->copy_krnl));*/
 }
 // biserdan: openCL
 /*
@@ -48,18 +48,19 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
   size_t global_out_off = 0;
   fprintf(stdout, "do_shift=%s\n",do_shift ? "true":"false");
   // biserdan: not needed
-  /*
+  
   if (do_shift) {
     // shift the image in slot 1 to slot 0, then place the new image in slot 1
     global_out_off += (s->width*s->height) + (s->width/2)*(s->height/2)*2;
-    CL_CHECK(clSetKernelArg(s->copy_krnl, 0, sizeof(cl_mem), &out_cl));
-    CL_CHECK(clSetKernelArg(s->copy_krnl, 1, sizeof(cl_int), &global_out_off));
-    const size_t copy_work_size = global_out_off/8;
+    // CL_CHECK(clSetKernelArg(s->copy_krnl, 0, sizeof(cl_mem), &out_cl));
+    // CL_CHECK(clSetKernelArg(s->copy_krnl, 1, sizeof(cl_int), &global_out_off));
+    // const size_t copy_work_size = global_out_off/8;
+    const int copy_work_size = global_out_off/8;
     //printf("copy_work_size=%lu\n",copy_work_size);
     //fprintf(stdout, "copy_work_size=%zu\n",copy_work_size);
-    CL_CHECK(clEnqueueNDRangeKernel(q, s->copy_krnl, 1, NULL,
-                                &copy_work_size, NULL, 0, 0, NULL));
-  }*/
+    //CL_CHECK(clEnqueueNDRangeKernel(q, s->copy_krnl, 1, NULL,&copy_work_size, NULL, 0, 0, NULL));
+    start_copy(out_cuda,&global_out_off,copy_work_size);
+  }
   // biserdan: openCL
   //CL_CHECK(clSetKernelArg(s->loadys_krnl, 0, sizeof(cl_mem), &y_cl));
   //CL_CHECK(clSetKernelArg(s->loadys_krnl, 1, sizeof(cl_mem), &out_cl));
@@ -87,8 +88,7 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
   CL_CHECK(clEnqueueNDRangeKernel(q, s->loaduv_krnl, 1, NULL,
                                &loaduv_work_size, NULL, 0, 0, NULL));*/
 
-  start_loaduv(u_cuda_d,out_cuda,&global_out_off,loaduv_work_size,
-     s->width, s->height);
+  start_loaduv(u_cuda_d,out_cuda,&global_out_off,loaduv_work_size);
   /*
   global_out_off += (s->width/2)*(s->height/2);
 

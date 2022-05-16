@@ -22,7 +22,8 @@ typedef struct {
   uint16_t *m_uv_cuda_h, *m_uv_cuda_d;
 } Transform;
 
-void transform_init(Transform* s, cl_context ctx, cl_device_id device_id);
+// void transform_init(Transform* s, cl_context ctx, cl_device_id device_id);
+void transform_init(Transform* s);
 
 void transform_destroy(Transform* transform);
 
