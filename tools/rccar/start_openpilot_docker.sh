@@ -18,9 +18,8 @@ fi
 docker run --net=host\
   --name openpilot_client \
   --rm \
-  -it \
+   -it \
   --gpus all \
-  --device=/dev/dri:/dev/dri \
   --device=/dev/input:/dev/input \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   --shm-size 1G \

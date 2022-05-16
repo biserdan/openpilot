@@ -7,10 +7,11 @@ import os
 from multiprocessing import Process, Queue
 from typing import Any
 import socket
+from PIL import Image
 
 import numpy as np
-# import pyopencl as cl
-# import pyopencl.array as cl_array
+#import pyopencl as cl
+#import pyopencl.array as cl_array
 from lib.can import can_function
 
 import cereal.messaging as messaging
@@ -64,54 +65,58 @@ def steer_rate_limit(old, new):
     return new
 
 
-# class Camerad:
-#   def __init__(self):
-#     self.frame_id = 0
-#     self.vipc_server = VisionIpcServer("camerad")
-#
-#     # TODO: remove RGB buffers once the last RGB vipc subscriber is removed
-#     self.vipc_server.create_buffers(VisionStreamType.VISION_STREAM_RGB_ROAD, 4, True, W, H)
-#     self.vipc_server.create_buffers(VisionStreamType.VISION_STREAM_ROAD, 40, False, W, H)
-#     self.vipc_server.start_listener()
-#
-#     # set up for pyopencl rgb to yuv conversion
-#     self.ctx = cl.create_some_context()
-#     self.queue = cl.CommandQueue(self.ctx)
-#     cl_arg = f" -DHEIGHT={H} -DWIDTH={W} -DRGB_STRIDE={W*3} -DUV_WIDTH={W // 2} -DUV_HEIGHT={H // 2} -DRGB_SIZE={W * H} -DCL_DEBUG "
-#
-#     # TODO: move rgb_to_yuv.cl to local dir once the frame stream camera is removed
-#     kernel_fn = os.path.join(BASEDIR, "selfdrive", "camerad", "transforms", "rgb_to_yuv.cl")
-#     prg = cl.Program(self.ctx, open(kernel_fn).read()).build(cl_arg)
-#     self.krnl = prg.rgb_to_yuv
-#     self.Wdiv4 = W // 4 if (W % 4 == 0) else (W + (4 - W % 4)) // 4
-#     self.Hdiv4 = H // 4 if (H % 4 == 0) else (H + (4 - H % 4)) // 4
-#
-#   def cam_callback(self, image):
-#     img = np.frombuffer(image.raw_data, dtype=np.dtype("uint8"))
-#     img = np.reshape(img, (H, W, 4))
-#     img = img[:, :, [0, 1, 2]].copy()
-#
-#     # convert RGB frame to YUV
-#     rgb = np.reshape(img, (H, W * 3))
-#     rgb_cl = cl_array.to_device(self.queue, rgb)
-#     yuv_cl = cl_array.empty_like(rgb_cl)
-#     self.krnl(self.queue, (np.int32(self.Wdiv4), np.int32(self.Hdiv4)), None, rgb_cl.data, yuv_cl.data).wait()
-#     yuv = np.resize(yuv_cl.get(), np.int32(rgb.size / 2))
-#     eof = int(self.frame_id * 0.05 * 1e9)
-#
-#     # TODO: remove RGB send once the last RGB vipc subscriber is removed
-#     self.vipc_server.send(VisionStreamType.VISION_STREAM_RGB_ROAD, img.tobytes(), self.frame_id, eof, eof)
-#     self.vipc_server.send(VisionStreamType.VISION_STREAM_ROAD, yuv.data.tobytes(), self.frame_id, eof, eof)
-#
-#     dat = messaging.new_message('roadCameraState')
-#     dat.roadCameraState = {
-#       "frameId": image.frame,
-#       "transform": [1.0, 0.0, 0.0,
-#                     0.0, 1.0, 0.0,
-#                     0.0, 0.0, 1.0]
-#     }
-#     pm.send('roadCameraState', dat)
-#     self.frame_id += 1
+class Camerad:
+  def __init__(self):
+    self.frame_id = 0
+    self.vipc_server = VisionIpcServer("camerad")
+
+    # TODO: remove RGB buffers once the last RGB vipc subscriber is removed
+    self.vipc_server.create_buffers(VisionStreamType.VISION_STREAM_RGB_ROAD, 4, True, W, H)
+    self.vipc_server.create_buffers(VisionStreamType.VISION_STREAM_ROAD, 40, False, W, H)
+    self.vipc_server.start_listener()
+
+    # set up for pyopencl rgb to yuv conversion
+    self.ctx = cl.create_some_context()
+    self.queue = cl.CommandQueue(self.ctx)
+    cl_arg = f" -DHEIGHT={H} -DWIDTH={W} -DRGB_STRIDE={W*3} -DUV_WIDTH={W // 2} -DUV_HEIGHT={H // 2} -DRGB_SIZE={W * H} -DCL_DEBUG "
+
+    # TODO: move rgb_to_yuv.cl to local dir once the frame stream camera is removed
+    kernel_fn = os.path.join(BASEDIR, "selfdrive", "camerad", "transforms", "rgb_to_yuv.cl")
+    prg = cl.Program(self.ctx, open(kernel_fn).read()).build(cl_arg)
+    self.krnl = prg.rgb_to_yuv
+    self.Wdiv4 = W // 4 if (W % 4 == 0) else (W + (4 - W % 4)) // 4
+    self.Hdiv4 = H // 4 if (H % 4 == 0) else (H + (4 - H % 4)) // 4
+    
+    self.image = Image.open('sample.jpg')
+
+  def cam_callback(self, exit_event: threading.Event):
+    while not exit_event.is_set():
+	    img = np.frombuffer(self.image.raw_data, dtype=np.dtype("uint8"))
+	    img = np.reshape(img, (H, W, 4))
+	    img = img[:, :, [0, 1, 2]].copy()
+
+	    # convert RGB frame to YUV
+	    rgb = np.reshape(img, (H, W * 3))
+	    rgb_cl = cl_array.to_device(self.queue, rgb)
+	    yuv_cl = cl_array.empty_like(rgb_cl)
+	    self.krnl(self.queue, (np.int32(self.Wdiv4), np.int32(self.Hdiv4)), None, rgb_cl.data, yuv_cl.data).wait()
+	    yuv = np.resize(yuv_cl.get(), np.int32(rgb.size / 2))
+	    eof = int(self.frame_id * 0.05 * 1e9)
+
+	    # TODO: remove RGB send once the last RGB vipc subscriber is removed
+	    self.vipc_server.send(VisionStreamType.VISION_STREAM_RGB_ROAD, img.tobytes(), self.frame_id, eof, eof)
+	    self.vipc_server.send(VisionStreamType.VISION_STREAM_ROAD, yuv.data.tobytes(), self.frame_id, eof, eof)
+
+	    dat = messaging.new_message('roadCameraState')
+	    dat.roadCameraState = {
+	      "frameId": self.image.frame,
+	      "transform": [1.0, 0.0, 0.0,
+			    0.0, 1.0, 0.0,
+			    0.0, 0.0, 1.0]
+	    }
+	    pm.send('roadCameraState', dat)
+	    self.frame_id += 1
+	    time.sleep(0.05)
 
 
 # def imu_callback(imu, vehicle_state):
@@ -273,7 +278,7 @@ def bridge(q):
     # blueprint.set_attribute('sensor_tick', '0.05')
     # transform = carla.Transform(carla.Location(x=0.8, z=1.13))
     # camera = world.spawn_actor(blueprint, transform, attach_to=vehicle)
-    # camerad = Camerad()
+    #camerad = Camerad()
     # camera.listen(camerad.cam_callback)
 
     vehicle_state = VehicleState()
@@ -294,6 +299,7 @@ def bridge(q):
     threads.append(threading.Thread(target=peripheral_state_function, args=(exit_event,)))
     threads.append(threading.Thread(target=fake_driver_monitoring, args=(exit_event,)))
     threads.append(threading.Thread(target=can_function_runner, args=(vehicle_state, exit_event,)))
+    #threads.append(threading.Thread(target=camerad.cam_callback, args=(exit_event,)))
     for t in threads:
       t.start()
 

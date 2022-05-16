@@ -4,7 +4,7 @@ Import('env', 'arch', 'cereal', 'messaging', 'common', 'gpucommon', 'visionipc')
 lenv = env.Clone()
 
 libs = [cereal, messaging, common, visionipc, gpucommon,
-        'OpenCL', 'SNPE', 'capnp', 'zmq', 'kj', 'yuv','glut','GLEW']
+        'OpenCL', 'SNPE', 'capnp', 'zmq', 'kj', 'yuv','glut','GLEW', 'cudart', 'stdc++']
 
 def get_dlsym_offset():
   """Returns the offset between dlopen and dlsym in libdl.so"""
@@ -97,6 +97,6 @@ lenv.Program('_modeld', [
     "models/driving.cc",
   ]+common_model, LIBS=libs)
   
-# lenv.Program('cuda_tests/hello_cuda', ["cuda_tests/hello.cu"], LIBS=libs+['cudart', 'stdc++'])
+lenv.Program('cuda_tests/hello_cuda', ["cuda_tests/hello.cu"], LIBS=libs+['cudart', 'stdc++'])
 
 # lenv.Program('cuda_tests/tst_cuda', ["cuda_tests/tst.cu", "cuda_tests/tst_main.cpp"], LIBS=libs+['cudart', 'stdc++'])

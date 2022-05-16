@@ -13,7 +13,7 @@
 #include <opencv2/videoio.hpp>
 #pragma clang diagnostic pop
 
-#include "selfdrive/common/clutil.h"
+// #include "selfdrive/common/clutil.h"
 #include "selfdrive/common/swaglog.h"
 #include "selfdrive/common/timing.h"
 #include "selfdrive/common/util.h"
@@ -58,14 +58,16 @@ void camera_close(CameraState *s) {
   // empty
 }
 
-void camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type) {
+//void camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type) {
+void camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned int fps, VisionStreamType rgb_type, VisionStreamType yuv_type) {
   assert(camera_id < std::size(cameras_supported));
   s->ci = cameras_supported[camera_id];
   assert(s->ci.frame_width != 0);
 
   s->camera_num = camera_id;
   s->fps = fps;
-  s->buf.init(device_id, ctx, s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
+//  s->buf.init(device_id, ctx, s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
+  s->buf.init(s, v, FRAME_BUF_COUNT, rgb_type, yuv_type); //TODO
 }
 
 void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
@@ -87,7 +89,8 @@ void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
 
     auto &buf = s->buf.camera_bufs[buf_idx];
     int transformed_size = transformed_mat.total() * transformed_mat.elemSize();
-    CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, transformed_size, transformed_mat.data, 0, NULL, NULL));
+    // CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, transformed_size, transformed_mat.data, 0, NULL, NULL));
+    cudaMemcpy(transformed_mat.data, buf.buf_cuda, transformed_size, cudaMemcpyDeviceToHost);
 
     s->buf.queue(buf_idx);
 
@@ -139,16 +142,27 @@ void driver_camera_thread(CameraState *s) {
 
 }  // namespace
 
-void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx) {
-  camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, device_id, ctx,
-              VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
-  camera_init(v, &s->driver_cam, CAMERA_ID_LGC615, 10, device_id, ctx,
-              VISION_STREAM_RGB_DRIVER, VISION_STREAM_DRIVER);
+//void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx) {
+//  camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, device_id, ctx,
+//              VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
+//  camera_init(v, &s->driver_cam, CAMERA_ID_LGC615, 10, device_id, ctx,
+//              VISION_STREAM_RGB_DRIVER, VISION_STREAM_DRIVER);
+//  s->pm = new PubMaster({"roadCameraState", "driverCameraState", "thumbnail"});
+//}
+
+void cameras_init(VisionIpcServer *v, MultiCameraState *s) {
+  camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
+  camera_init(v, &s->driver_cam, CAMERA_ID_LGC615, 10, VISION_STREAM_RGB_DRIVER, VISION_STREAM_DRIVER);
   s->pm = new PubMaster({"roadCameraState", "driverCameraState", "thumbnail"});
 }
 
-void camera_rc_init(VisionIpcServer* v, MultiCameraState* s, cl_device_id device_id, cl_context ctx) {
-    camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, device_id, ctx,
+// void camera_rc_init(VisionIpcServer* v, MultiCameraState* s, cl_device_id device_id, cl_context ctx) {
+//     camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, device_id, ctx,
+//         VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
+//     s->pm = new PubMaster({ "roadCameraState", "thumbnail" });
+// }
+void camera_rc_init(VisionIpcServer* v, MultiCameraState* s) {
+    camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20,
         VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
     s->pm = new PubMaster({ "roadCameraState", "thumbnail" });
 }

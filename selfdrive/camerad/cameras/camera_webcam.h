@@ -3,7 +3,8 @@
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
 #else
-#include <CL/cl.h>
+// #include <CL/cl.h>
+#include "/usr/local/cuda/include/cuda_runtime.h"
 #endif
 
 #include "selfdrive/camerad/cameras/camera_common.h"

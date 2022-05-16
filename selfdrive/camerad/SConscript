@@ -1,6 +1,6 @@
 Import('env', 'arch', 'cereal', 'messaging', 'common', 'gpucommon', 'visionipc', 'USE_WEBCAM')
 
-libs = ['m', 'pthread', common, 'jpeg', 'OpenCL', 'yuv', cereal, messaging, 'zmq', 'capnp', 'kj', visionipc, gpucommon]
+libs = ['m', 'pthread', common, 'jpeg', 'OpenCL', 'yuv', cereal, messaging, 'zmq', 'capnp', 'kj', visionipc, gpucommon, 'glut','GLEW', 'cudart', 'stdc++']
 
 if arch == "larch64":
   libs += ['atomic']
@@ -32,6 +32,7 @@ env.Program('camerad', [
     'main.cc',
     'cameras/camera_common.cc',
     'transforms/rgb_to_yuv.cc',
+    'transforms/rgb_to_yuv_kernel.cu',
     'imgproc/utils.cc',
     cameras,
   ], LIBS=libs)
