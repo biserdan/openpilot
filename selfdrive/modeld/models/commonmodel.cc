@@ -27,8 +27,8 @@ inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
   }
 }
 
-ModelFrame::ModelFrame(cl_device_id device_id, cl_context context) {
-// ModelFrame::ModelFrame() {
+// ModelFrame::ModelFrame(cl_device_id device_id, cl_context context) {
+ModelFrame::ModelFrame() {
   input_frames = std::make_unique<float[]>(buf_size);
 
   /*q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
@@ -61,7 +61,7 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
   /*transform_queue(&this->transform, q,
                   yuv_cl, frame_width, frame_height,
                   y_cl, u_cl, v_cl, MODEL_WIDTH, MODEL_HEIGHT, projection);*/
-  transform_queue(&this->transform, q,
+  transform_queue(&this->transform,
                   yuv_cl, frame_width, frame_height,
                   y_cuda_d, u_cuda_d, v_cuda_d, MODEL_WIDTH, MODEL_HEIGHT, projection);
 

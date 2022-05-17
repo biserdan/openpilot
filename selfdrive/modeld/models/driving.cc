@@ -27,9 +27,12 @@ constexpr const kj::ArrayPtr<const T> to_kj_array_ptr(const std::array<T, size> 
   return kj::ArrayPtr(arr.data(), arr.size());
 }
 
-void model_init(ModelState* s, cl_device_id device_id, cl_context context) {
-  s->frame = new ModelFrame(device_id, context);
-  s->wide_frame = new ModelFrame(device_id, context);
+//void model_init(ModelState* s, cl_device_id device_id, cl_context context) {
+void model_init(ModelState* s) {
+  //s->frame = new ModelFrame(device_id, context);
+  s->frame = new ModelFrame();
+  //s->wide_frame = new ModelFrame(device_id, context);
+  s->wide_frame = new ModelFrame();
 
 #ifdef USE_THNEED
   s->m = std::make_unique<ThneedModel>("../../models/supercombo.thneed",

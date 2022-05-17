@@ -29,8 +29,8 @@ float sigmoid(float input);
 
 class ModelFrame {
 public:
-  ModelFrame(cl_device_id device_id, cl_context context);
-  //ModelFrame();
+  // ModelFrame(cl_device_id device_id, cl_context context);
+  ModelFrame();
   ~ModelFrame();
   float* prepare(uint8_t *yuv_cuda, int width, int height, const mat3& transform, void **output);
   //float* prepare(cl_mem yuv_cuda, int width, int height, const mat3& transform, cl_mem *output);
@@ -43,7 +43,7 @@ public:
 private:
   Transform transform;
   LoadYUVState loadyuv;
-  cl_command_queue q;
+  // cl_command_queue q;
   // cl_mem y_cl, u_cl, v_cl, net_input_cl;
   
   // uint8_t *y_cuda_h,*u_cuda_h,*v_cuda_h;
