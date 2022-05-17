@@ -27,7 +27,7 @@ __global__ void loadys(u_int8_t const * const Y,
                      int out_offset, int TRANSFORMED_WIDTH,
                      int TRANSFORMED_HEIGHT, int UV_SIZE)
 {
-   const int gid = threadIdx.x;
+   const int gid = threadIdx.x * blockDim.x * threadIdx.x;
    const int ois = gid * 8;
    const int oy = ois / TRANSFORMED_WIDTH;
    const int ox = ois % TRANSFORMED_WIDTH;
@@ -69,8 +69,26 @@ __global__ void loadys(u_int8_t const * const Y,
       outy1 = out + out_offset + UV_SIZE*3; //y3
     }
     
+    // copy vector 0246 (even indexes)
+    //checkMsg(cudaMemcpy((void *)outy0 + 0 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2,(void*)&ysf[0],sizeof(float),cudaMemcpyDeviceToDevice));
+    //checkMsg(cudaMemcpy((void *)outy0 + 1 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2,(void*)&ysf[2],sizeof(float),cudaMemcpyDeviceToDevice));
+    //checkMsg(cudaMemcpy((void *)outy0 + 2 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2,(void*)&ysf[4],sizeof(float),cudaMemcpyDeviceToDevice));
+    //checkMsg(cudaMemcpy((void *)outy0 + 3 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2,(void*)&ysf[5],sizeof(float),cudaMemcpyDeviceToDevice));
     //vstore4(ysf.s0246, 0, outy0 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2);
+    *(outy0 + 0 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2) = ysf[0];
+    *(outy0 + 1 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2) = ysf[2];
+    *(outy0 + 2 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2) = ysf[4];
+    *(outy0 + 3 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2) = ysf[6];
+    // copy vector 1357 (odd indexes)
+    // checkMsg(cudaMemcpy((void *)outy1 + 0 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2,(void*)&ysf[1],sizeof(float),cudaMemcpyDeviceToDevice));
+    // checkMsg(cudaMemcpy((void *)outy1 + 1 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2,(void*)&ysf[3],sizeof(float),cudaMemcpyDeviceToDevice));
+    // checkMsg(cudaMemcpy((void *)outy1 + 2 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2,(void*)&ysf[5],sizeof(float),cudaMemcpyDeviceToDevice));
+    // checkMsg(cudaMemcpy((void *)outy1 + 3 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2,(void*)&ysf[7],sizeof(float),cudaMemcpyDeviceToDevice));
     //vstore4(ysf.s1357, 0, outy1 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2);
+    *(outy1 + 0 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2) = ysf[1];
+    *(outy1 + 1 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2) = ysf[3];
+    *(outy1 + 2 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2) = ysf[5];
+    *(outy1 + 3 + (oy/2) * (TRANSFORMED_WIDTH/2) + ox/2) = ysf[7];
 }
 
 /*__global__ void loaduv(__global uchar8 const * const in,
@@ -80,7 +98,7 @@ __global__ void loaduv(uint8_t const * const in,
                      float * out,
                      int out_offset)
 {
-  const int gid = threadIdx.x;
+  const int gid = threadIdx.x * blockDim.x * threadIdx.x;
   const u_int8_t inv[8] = {
     in[gid],
     in[gid+1],
@@ -117,7 +135,7 @@ __global__ void loaduv(uint8_t const * const in,
 __global__ void copy(float * inout,
                    int in_offset)
 {
-  const int gid = threadIdx.x;
+  const int gid = threadIdx.x * blockDim.x * threadIdx.x;
   inout[gid + 0] = inout[gid + 0 + in_offset / 8];
   inout[gid + 1] = inout[gid + 1 + in_offset / 8];
   inout[gid + 2] = inout[gid + 2 + in_offset / 8];
@@ -133,20 +151,21 @@ void start_loadys(uint8_t *y_cuda_d, float_t *out_cuda,
     int TRANSFORMED_WIDTH, int TRANSFORMED_HEIGHT)
 {
    int UV_SIZE = ((TRANSFORMED_WIDTH/2)*(TRANSFORMED_HEIGHT/2));
-   loadys<<< 1, loadys_work_size >>>(y_cuda_d,out_cuda,static_cast<int>(*global_out_off),TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
+   loadys<<< loadys_work_size, 1>>>(y_cuda_d,out_cuda,static_cast<int>(*global_out_off),TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
    sleep(1);   // Necessary to give time to let GPU threads run !!!
 }
 
 void start_loaduv(uint8_t *u_cuda_d, float_t *out_cuda, 
     size_t *global_out_off, const int loaduv_work_size)
 {
-   loaduv<<< 1, loaduv_work_size >>>(u_cuda_d,out_cuda,static_cast<int>(*global_out_off));
+   loaduv<<< loaduv_work_size, 1>>>(u_cuda_d,out_cuda,static_cast<int>(*global_out_off));
    sleep(1);   // Necessary to give time to let GPU threads run !!!
 }
 
 void start_copy(float_t *inout, 
     size_t *in_offset, const int copy_work_size)
 {
-   copy<<< 1, copy_work_size >>>(inout,static_cast<int>(*in_offset));
-   sleep(1);   // Necessary to give time to let GPU threads run !!!
+  
+  copy<<< copy_work_size, 1>>>(inout,static_cast<int>(*in_offset));
+  sleep(1);   // Necessary to give time to let GPU threads run !!!
 }

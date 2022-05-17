@@ -22,7 +22,8 @@ common_src = [
   "transforms/loadyuv.cc",
   "transforms/transform.cc",
   "transforms/hello_cuda.cu",
-  "transforms/loadyuv_cuda.cu"
+  "transforms/loadyuv_cuda.cu",
+  "transforms/transform_cuda.cu"
 ]
 
 thneed_src = [
