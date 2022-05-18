@@ -27,9 +27,36 @@ constexpr const kj::ArrayPtr<const T> to_kj_array_ptr(const std::array<T, size> 
   return kj::ArrayPtr(arr.data(), arr.size());
 }
 
-void model_init(ModelState* s, cl_device_id device_id, cl_context context) {
-  s->frame = new ModelFrame(device_id, context);
-  s->wide_frame = new ModelFrame(device_id, context);
+// void model_init(ModelState* s, cl_device_id device_id, cl_context context) {
+//   s->frame = new ModelFrame();
+//   s->wide_frame = new ModelFrame();
+
+// #ifdef USE_THNEED
+//   s->m = std::make_unique<ThneedModel>("../../models/supercombo.thneed",
+// #elif USE_ONNX_MODEL
+//   s->m = std::make_unique<ONNXModel>("../../models/supercombo.onnx",
+// #else
+//   s->m = std::make_unique<SNPEModel>("../../models/supercombo.dlc",
+// #endif
+//    &s->output[0], NET_OUTPUT_SIZE, USE_GPU_RUNTIME, true);
+
+// #ifdef TEMPORAL
+//   s->m->addRecurrent(&s->output[OUTPUT_SIZE], TEMPORAL_SIZE);
+// #endif
+
+// #ifdef DESIRE
+//   s->m->addDesire(s->pulse_desire, DESIRE_LEN);
+// #endif
+
+// #ifdef TRAFFIC_CONVENTION
+//   const int idx = Params().getBool("IsRHD") ? 1 : 0;
+//   s->traffic_convention[idx] = 1.0;
+//   s->m->addTrafficConvention(s->traffic_convention, TRAFFIC_CONVENTION_LEN);
+// #endif
+// }
+void model_init(ModelState* s) {
+  s->frame = new ModelFrame();
+  s->wide_frame = new ModelFrame();
 
 #ifdef USE_THNEED
   s->m = std::make_unique<ThneedModel>("../../models/supercombo.thneed",
@@ -73,12 +100,12 @@ ModelOutput* model_eval_frame(ModelState* s, VisionBuf* buf, VisionBuf* wbuf,
 #endif
 
   // if getInputBuf is not NULL, net_input_buf will be
-  auto net_input_buf = s->frame->prepare(buf->buf_cl, buf->width, buf->height, transform, static_cast<cl_mem*>(s->m->getInputBuf()));
+  auto net_input_buf = s->frame->prepare((uint8_t *)buf->buf_cuda, buf->width, buf->height, transform, (void **)(s->m->getInputBuf()));
   s->m->addImage(net_input_buf, s->frame->buf_size);
   LOGT("Image added");
 
   if (wbuf != nullptr) {
-    auto net_extra_buf = s->wide_frame->prepare(wbuf->buf_cl, wbuf->width, wbuf->height, transform_wide, static_cast<cl_mem*>(s->m->getExtraBuf()));
+    auto net_extra_buf = s->wide_frame->prepare((uint8_t *)wbuf->buf_cuda, wbuf->width, wbuf->height, transform_wide, (void **)(s->m->getExtraBuf()));
     s->m->addExtra(net_extra_buf, s->wide_frame->buf_size);
     LOGT("Extra image added");
   }

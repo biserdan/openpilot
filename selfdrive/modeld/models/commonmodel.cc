@@ -9,35 +9,80 @@
 #include "selfdrive/common/mat.h"
 #include "selfdrive/common/timing.h"
 
-ModelFrame::ModelFrame(cl_device_id device_id, cl_context context) {
+inline void __checkMsg(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA error: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+    exit(-1);
+  }
+}
+inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+  }
+}
+
+// ModelFrame::ModelFrame(cl_device_id device_id, cl_context context) {
+ModelFrame::ModelFrame() {
   input_frames = std::make_unique<float[]>(buf_size);
 
-  q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
+  /*q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
   y_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_WIDTH * MODEL_HEIGHT, NULL, &err));
   u_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
   v_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
-  net_input_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_FRAME_SIZE * sizeof(float), NULL, &err));
+  net_input_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_FRAME_SIZE * sizeof(float), NULL, &err));*/
 
-  transform_init(&transform, context, device_id);
-  loadyuv_init(&loadyuv, context, device_id, MODEL_WIDTH, MODEL_HEIGHT);
+  /*checkMsg(cudaHostAlloc((void **)&y_cuda_h, MODEL_WIDTH * MODEL_HEIGHT, cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&y_cuda_d, (void *)y_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void **)&u_cuda_h, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&u_cuda_d, (void *)u_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void **)&v_cuda_h, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&v_cuda_d, (void *)v_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void **)&net_input_cuda_h, MODEL_FRAME_SIZE * sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&net_input_cuda_d, (void *)net_input_cuda_h, 0));*/
+
+  checkMsg(cudaMalloc((void **)&y_cuda_d,MODEL_WIDTH * MODEL_HEIGHT));
+  checkMsg(cudaMalloc((void **)&u_cuda_d,(MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2)));
+  checkMsg(cudaMalloc((void **)&v_cuda_d,(MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2)));
+  checkMsg(cudaMalloc((void **)&net_input_cuda_d,MODEL_FRAME_SIZE * sizeof(float)));
+
+  // transform_init(&transform, context, device_id);
+  transform_init(&transform);
+  loadyuv_init(&loadyuv, MODEL_WIDTH, MODEL_HEIGHT);
 }
 
-float* ModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_height, const mat3 &projection, cl_mem *output) {
-  transform_queue(&this->transform, q,
+//float* ModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_height, const mat3 &projection, cl_mem *output) {
+float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, const mat3 &projection, void **output) {
+  /*transform_queue(&this->transform, q,
                   yuv_cl, frame_width, frame_height,
-                  y_cl, u_cl, v_cl, MODEL_WIDTH, MODEL_HEIGHT, projection);
+                  y_cl, u_cl, v_cl, MODEL_WIDTH, MODEL_HEIGHT, projection);*/
+  transform_queue(&this->transform,
+                  yuv_cl, frame_width, frame_height,
+                  y_cuda_d, u_cuda_d, v_cuda_d, MODEL_WIDTH, MODEL_HEIGHT, projection);
 
   if (output == NULL) {
-    loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, net_input_cl);
+    // biserdan: openCL
+    // loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, net_input_cl);
+    // biserdan: CUDA
+    loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d);
 
     std::memmove(&input_frames[0], &input_frames[MODEL_FRAME_SIZE], sizeof(float) * MODEL_FRAME_SIZE);
-    CL_CHECK(clEnqueueReadBuffer(q, net_input_cl, CL_TRUE, 0, MODEL_FRAME_SIZE * sizeof(float), &input_frames[MODEL_FRAME_SIZE], 0, nullptr, nullptr));
-    clFinish(q);
+    // CL_CHECK(clEnqueueReadBuffer(q, net_input_cl, CL_TRUE, 0, MODEL_FRAME_SIZE * sizeof(float), &input_frames[MODEL_FRAME_SIZE], 0, nullptr, nullptr));
+    // clFinish(q);
+    // from host to device
+    checkMsg(cudaMemcpy((void *)net_input_cuda_d,(void *)&input_frames[MODEL_FRAME_SIZE],MODEL_FRAME_SIZE * sizeof(float),cudaMemcpyHostToDevice));
+
     return &input_frames[0];
   } else {
-    loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, *output, true);
+    loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d, true);
+    // loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, *output, true);
     // NOTE: Since thneed is using a different command queue, this clFinish is needed to ensure the image is ready.
-    clFinish(q);
+    //clFinish(q);
     return NULL;
   }
 }
@@ -45,11 +90,21 @@ float* ModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_height, con
 ModelFrame::~ModelFrame() {
   transform_destroy(&transform);
   loadyuv_destroy(&loadyuv);
-  CL_CHECK(clReleaseMemObject(net_input_cl));
+  /*CL_CHECK(clReleaseMemObject(net_input_cl));
   CL_CHECK(clReleaseMemObject(v_cl));
   CL_CHECK(clReleaseMemObject(u_cl));
   CL_CHECK(clReleaseMemObject(y_cl));
-  CL_CHECK(clReleaseCommandQueue(q));
+  CL_CHECK(clReleaseCommandQueue(q));*/
+
+  /*checkMsg(cudaFreeHost((void *)net_input_cuda_h));
+  checkMsg(cudaFreeHost((void *)v_cuda_h));
+  checkMsg(cudaFreeHost((void *)u_cuda_h));
+  checkMsg(cudaFreeHost((void *)y_cuda_h));*/
+
+  checkMsg(cudaFree((void *)net_input_cuda_d));
+  checkMsg(cudaFree((void *)v_cuda_d));
+  checkMsg(cudaFree((void *)u_cuda_d));
+  checkMsg(cudaFree((void *)y_cuda_d));
 }
 
 void softmax(const float* input, float* output, size_t len) {

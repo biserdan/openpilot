@@ -12,9 +12,14 @@
 #include <CL/cl.h>
 #endif
 
+#include "/usr/local/cuda/include/cuda_runtime.h"
+
 #include "selfdrive/common/mat.h"
 #include "selfdrive/modeld/transforms/loadyuv.h"
 #include "selfdrive/modeld/transforms/transform.h"
+
+#define checkMsg(msg) __checkMsg(msg, __FILE__, __LINE__)
+#define checkMsgNoFail(msg) __checkMsgNoFail(msg, __FILE__, __LINE__)
 
 const bool send_raw_pred = getenv("SEND_RAW_PRED") != NULL;
 
@@ -23,9 +28,11 @@ float sigmoid(float input);
 
 class ModelFrame {
 public:
-  ModelFrame(cl_device_id device_id, cl_context context);
+  // ModelFrame(cl_device_id device_id, cl_context context);
+  ModelFrame();
   ~ModelFrame();
-  float* prepare(cl_mem yuv_cl, int width, int height, const mat3& transform, cl_mem *output);
+  float* prepare(uint8_t *yuv_cuda, int width, int height, const mat3& transform, void **output);
+  //float* prepare(cl_mem yuv_cuda, int width, int height, const mat3& transform, cl_mem *output);
 
   const int MODEL_WIDTH = 512;
   const int MODEL_HEIGHT = 256;
@@ -35,7 +42,14 @@ public:
 private:
   Transform transform;
   LoadYUVState loadyuv;
-  cl_command_queue q;
-  cl_mem y_cl, u_cl, v_cl, net_input_cl;
+  // cl_command_queue q;
+  // cl_mem y_cl, u_cl, v_cl, net_input_cl;
+  
+  // uint8_t *y_cuda_h,*u_cuda_h,*v_cuda_h;
+  uint8_t *y_cuda_d,*u_cuda_d,*v_cuda_d;
+
+  // float_t *net_input_cuda_h;
+  float_t *net_input_cuda_d;
+
   std::unique_ptr<float[]> input_frames;
 };
