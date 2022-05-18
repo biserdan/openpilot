@@ -37,9 +37,20 @@ env.Program('camerad', [
     cameras,
   ], LIBS=libs)
 
-if GetOption("test"):
-  env.Program('test/ae_gray_test', [
-      'test/ae_gray_test.cc',
-      'cameras/camera_common.cc',
-      'transforms/rgb_to_yuv.cc',
-    ], LIBS=libs)
+# env.Program('transforms/rgb_to_yuv_test_cuda', [
+#   'transforms/rgb_to_yuv_test_cuda.cc',
+#   'transforms/rgb_to_yuv.cc',
+#   'transforms/rgb_to_yuv_kernel.cu',
+# ], LIBS=libs)
+
+# env.Program('transforms/rgb_to_yuv_test_cl', [
+#   'transforms/rgb_to_yuv_test_cl.cc',
+#   'transforms/rgb_to_yuv_cl.cc',
+# ], LIBS=libs)
+
+# env.Program('test/ae_gray_test', [
+#     'test/ae_gray_test.cc',
+#     'cameras/camera_common.cc',
+#     'transforms/rgb_to_yuv.cc',
+#     'transforms/rgb_to_yuv_kernel.cu',
+#   ], LIBS=libs)

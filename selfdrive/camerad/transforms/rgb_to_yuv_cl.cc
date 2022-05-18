@@ -1,4 +1,4 @@
-#include "selfdrive/camerad/transforms/rgb_to_yuv.h"
+#include "selfdrive/camerad/transforms/rgb_to_yuv_cl.h"
 
 #include <cassert>
 #include <cstdio>
@@ -6,7 +6,7 @@
 Rgb2Yuv::Rgb2Yuv(cl_context ctx, cl_device_id device_id, int width, int height, int rgb_stride) {
   assert(width % 2 == 0 && height % 2 == 0);
   char args[1024];
-  // snprintf(args, sizeof(args),
+  snprintf(args, sizeof(args),
            "-cl-fast-relaxed-math -cl-denorms-are-zero "
 #ifdef CL_DEBUG
            "-DCL_DEBUG "
@@ -33,6 +33,4 @@ void Rgb2Yuv::queue(cl_command_queue q, cl_mem rgb_cl, cl_mem yuv_cl) {
   CL_CHECK(clEnqueueNDRangeKernel(q, krnl, 2, NULL, &work_size[0], NULL, 0, 0, &event));
   CL_CHECK(clWaitForEvents(1, &event));
   CL_CHECK(clReleaseEvent(event));
-  
-  rgb_to_yuv<<< >>>(uchar const * const rgb, uchar * out_yuv);
 }

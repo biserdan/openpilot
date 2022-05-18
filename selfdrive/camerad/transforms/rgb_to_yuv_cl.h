@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdlib.h>
 #include "selfdrive/common/clutil.h"
 
 class Rgb2Yuv {
@@ -10,11 +11,6 @@ public:
 private:
   size_t work_size[2];
   cl_kernel krnl;
-  int width;
-  int height;
-  int uv_width;
-  int uv_height;
-  int rgb_stride;
-  int rgb_size;
 };
+
 

@@ -27,21 +27,27 @@
 
 #endif
 
-#include <CL/cl.h>
+// #include <CL/cl.h>
 
 #include "libyuv.h"
 #include "selfdrive/camerad/transforms/rgb_to_yuv.h"
-#include "selfdrive/common/clutil.h"
+// #include "selfdrive/common/clutil.h"
+#include "/usr/local/cuda/include/cuda_runtime.h"
+
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
 
 static inline double millis_since_boot() {
   struct timespec t;
   clock_gettime(CLOCK_BOOTTIME, &t);
   return t.tv_sec * 1000.0 + t.tv_nsec * 1e-6;
-}
-
-void cl_init(cl_device_id &device_id, cl_context &context) {
-  device_id = cl_get_device_id(CL_DEVICE_TYPE_DEFAULT);
-  context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, NULL, NULL, &err));
 }
 
 
@@ -100,17 +106,6 @@ bool compare_results(uint8_t *a, uint8_t *b, int len, int stride, int width, int
 int main(int argc, char** argv) {
   srand(1337);
 
-  cl_device_id device_id;
-  cl_context context;
-  cl_init(device_id, context)	;
-
-  int err;
-  const cl_queue_properties props[] = {0}; //CL_QUEUE_PRIORITY_KHR, CL_QUEUE_PRIORITY_HIGH_KHR, 0};
-  cl_command_queue q = clCreateCommandQueueWithProperties(context, device_id, props, &err);
-  if(err != 0) {
-    std::cout << "clCreateCommandQueueWithProperties error: " << err << std::endl;
-  }
-
   int width = 1164;
   int height = 874;
 
@@ -121,33 +116,37 @@ int main(int argc, char** argv) {
         {
         case 'f':
           std::cout << "Using front camera dimensions" << std::endl;
-          int width = 1152;
-          int height = 846;
+          width = 1152;
+          height = 846;
         }
   }
 
   std::cout << "Width: " << width << " Height: " << height << std::endl;
   uint8_t *rgb_frame = new uint8_t[width * height * 3];
 
-
-  RGBToYUVState rgb_to_yuv_state;
-  rgb_to_yuv_init(&rgb_to_yuv_state, context, device_id, width, height, width * 3);
+  Rgb2Yuv rgb_to_yuv_state(width,height, width * 3);
 
   int frame_yuv_buf_size = width * height * 3 / 2;
-  cl_mem yuv_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, frame_yuv_buf_size, (void*)NULL, &err));
+  void * d_yuv_cuda;
+  cudaMalloc((void**)&d_yuv_cuda, frame_yuv_buf_size);
+
+  // cl_mem yuv_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, frame_yuv_buf_size, (void*)NULL, &err));
   uint8_t *frame_yuv_buf = new uint8_t[frame_yuv_buf_size];
   uint8_t *frame_yuv_ptr_y = frame_yuv_buf;
   uint8_t *frame_yuv_ptr_u = frame_yuv_buf + (width * height);
   uint8_t *frame_yuv_ptr_v = frame_yuv_ptr_u + ((width/2) * (height/2));
 
-  cl_mem rgb_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, width * height * 3, (void*)NULL, &err));
+  uint8_t * d_rgb_cuda;
+  cudaMalloc((void**)&d_rgb_cuda, width * height * 3);
+
+  // cl_mem rgb_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, width * height * 3, (void*)NULL, &err));
   int mismatched = 0;
   int counter = 0;
   srand (time(NULL));
 
   for (int i = 0; i < 100; i++) {
-    for (int i = 0; i < width * height * 3; i++) {
-      rgb_frame[i] = (uint8_t)rand();
+    for (int j = 0; j < width * height * 3; j++) {
+      rgb_frame[j] = (uint8_t)rand();
     }
 
     double t1 = millis_since_boot();
@@ -159,18 +158,31 @@ int main(int argc, char** argv) {
     double t2 = millis_since_boot();
     //printf("Libyuv: rgb to yuv: %.2fms\n", t2-t1);
 
-    clEnqueueWriteBuffer(q, rgb_cl, CL_TRUE, 0, width * height * 3, (void *)rgb_frame, 0, NULL, NULL);
+    cudaMemcpy(d_rgb_cuda, (void *)rgb_frame, width * height * 3, cudaMemcpyHostToDevice);
+
+    // clEnqueueWriteBuffer(q, rgb_cl, CL_TRUE, 0, width * height * 3, (void *)rgb_frame, 0, NULL, NULL);
     t1 = millis_since_boot();
-    rgb_to_yuv_queue(&rgb_to_yuv_state, q, rgb_cl, yuv_cl);
+
+    rgb_to_yuv_state.queue(d_rgb_cuda, d_yuv_cuda);
+    // rgb_to_yuv_queue(&rgb_to_yuv_state, q, rgb_cl, yuv_cl);
     t2 = millis_since_boot();
 
     //printf("OpenCL: rgb to yuv: %.2fms\n", t2-t1);
-    uint8_t *yyy = (uint8_t *)clEnqueueMapBuffer(q, yuv_cl, CL_TRUE,
-                                                 CL_MAP_READ, 0, frame_yuv_buf_size,
-                                                 0, NULL, NULL, &err);
-    if(!compare_results(frame_yuv_ptr_y, yyy, frame_yuv_buf_size, width, width, height, (uint8_t*)rgb_frame))
+    // uint8_t *yyy = (uint8_t *)clEnqueueMapBuffer(q, yuv_cl, CL_TRUE,
+    //                                              CL_MAP_READ, 0, frame_yuv_buf_size,
+    //                                              0, NULL, NULL, &err);
+
+    uint8_t *yyy;
+    yyy   = (uint8_t *)malloc(frame_yuv_buf_size);
+    gpuErrchk(cudaMemcpy(yyy, d_yuv_cuda, frame_yuv_buf_size, cudaMemcpyDeviceToHost)); 
+
+    // gpuErrchk(cudaHostAlloc((void **)&yyy, frame_yuv_buf_size, cudaHostAllocMapped));
+    // gpuErrchk(cudaHostGetDevicePointer((void **)&d_yuv_cuda, (void *)yyy, 0));
+
+
+    if(!compare_results(frame_yuv_ptr_y, (uint8_t *)yyy, frame_yuv_buf_size, width, width, height, (uint8_t*)rgb_frame))
       mismatched++;
-    clEnqueueUnmapMemObject(q, yuv_cl, yyy, 0, NULL, NULL);
+    // clEnqueueUnmapMemObject(q, yuv_cl, yyy, 0, NULL, NULL);
 
     // std::this_thread::sleep_for(std::chrono::milliseconds(20));
     if(counter++ % 100 == 0)
@@ -180,8 +192,8 @@ int main(int argc, char** argv) {
   printf("Matched: %d, Mismatched: %d\n", counter - mismatched, mismatched);
 
   delete[] frame_yuv_buf;
-  rgb_to_yuv_destroy(&rgb_to_yuv_state);
-  clReleaseContext(context);
+  // rgb_to_yuv_destroy(&rgb_to_yuv_state);
+  // clReleaseContext(context);
   delete[] rgb_frame;
 
   if (mismatched == 0)
