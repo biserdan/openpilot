@@ -3,7 +3,8 @@ Import('env', 'arch', 'cereal', 'messaging', 'common', 'visionipc')
 libs = [common, cereal, messaging, visionipc,
         'zmq', 'capnp', 'kj', 'z',
         'avformat', 'avcodec', 'swscale', 'avutil',
-        'yuv', 'OpenCL', 'pthread']
+        'yuv', 'OpenCL', 'pthread',
+        'glut','GLEW', 'cudart', 'stdc++']
 
 src = ['logger.cc', 'loggerd.cc', 'video_writer.cc', 'remote_encoder.cc']
 if arch == 'larch64':
