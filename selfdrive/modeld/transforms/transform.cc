@@ -58,7 +58,7 @@ void transform_destroy(Transform* s) {
                      cl_mem out_y, cl_mem out_u, cl_mem out_v,
                      int out_width, int out_height,
                      const mat3& projection) {*/
-void transform_queue(Transform* s,cl_command_queue q,
+void transform_queue(Transform* s,
                      uint8_t *in_yuv, int in_width, int in_height,
                      uint8_t *out_y, uint8_t *out_u, uint8_t *out_v,
                      int out_width, int out_height,
