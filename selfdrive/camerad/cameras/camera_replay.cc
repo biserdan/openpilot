@@ -6,6 +6,24 @@
 #include "selfdrive/common/clutil.h"
 #include "selfdrive/common/util.h"
 
+inline void __checkMsg(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA error: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+    exit(-1);
+  }
+}
+inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+  }
+}
+
 extern ExitHandler do_exit;
 
 void camera_autoexposure(CameraState *s, float grey_frac) {}
@@ -57,7 +75,8 @@ void run_camera(CameraState *s) {
     if (s->frame->get(stream_frame_id++, rgb_buf.get(), yuv_buf.get())) {
       s->buf.camera_bufs_metadata[buf_idx] = {.frame_id = frame_id};
       auto &buf = s->buf.camera_bufs[buf_idx];
-      CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, s->frame->getRGBSize(), rgb_buf.get(), 0, NULL, NULL));
+      // CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, s->frame->getRGBSize(), rgb_buf.get(), 0, NULL, NULL));
+      checkMsg(cudaMemcpy((void *)buf.buf_cuda,(void*)rgb_buf.get(),s->frame->getRGBSize(),cudaMemcpyHostToDevice));
       s->buf.queue(buf_idx);
       ++frame_id;
       buf_idx = (buf_idx + 1) % FRAME_BUF_COUNT;

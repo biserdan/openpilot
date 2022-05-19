@@ -3,7 +3,13 @@
 #include "selfdrive/camerad/cameras/camera_common.h"
 #include "selfdrive/ui/replay/framereader.h"
 
+#include "cuda_runtime.h"
+#include "cuda_runtime_api.h"
+
 #define FRAME_BUF_COUNT 16
+
+#define checkMsg(msg) __checkMsg(msg, __FILE__, __LINE__)
+#define checkMsgNoFail(msg) __checkMsgNoFail(msg, __FILE__, __LINE__)
 
 typedef struct CameraState {
   int camera_num;
