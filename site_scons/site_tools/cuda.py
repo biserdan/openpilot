@@ -33,7 +33,6 @@ def CUDANVCCSharedObjectEmitter(target, source, env):
 
 
 def generate(env):
-    print('Test')
     staticObjBuilder, sharedObjBuilder = SCons.Tool.createObjBuilders(env)
     staticObjBuilder.add_action(".cu", "$STATICNVCCCMD")
     staticObjBuilder.add_emitter(".cu", CUDANVCCStaticObjectEmitter)

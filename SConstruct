@@ -72,7 +72,7 @@ lenv = {
 }
 
 rpath = lenv["LD_LIBRARY_PATH"].copy()
-
+print(arch)
 if arch == "larch64":
   lenv["LD_LIBRARY_PATH"] += ['/data/data/com.termux/files/usr/lib']
 
@@ -99,6 +99,7 @@ if arch == "larch64":
   cxxflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   rpath += ["/usr/local/lib"]
 # NVIDIA Jetson Nano
+
 elif arch == "aarch64":
   cpppath = [
     "#third_party/opencl/include",
@@ -400,7 +401,8 @@ if arch != "larch64":
   })
 
 Export('rednose_config')
-# SConscript(['rednose/SConscript'])
+if(arch == "x86_64"):
+	SConscript(['rednose/SConscript'])
 
 # Build openpilot
 
@@ -427,7 +429,8 @@ SConscript(['selfdrive/clocksd/SConscript'])
 
 # SConscript(['selfdrive/loggerd/SConscript'])
 
-# SConscript(['selfdrive/locationd/SConscript'])
+if(arch == "x86_64"):
+	SConscript(['selfdrive/locationd/SConscript'])
 SConscript(['selfdrive/sensord/SConscript'])
 SConscript(['selfdrive/ui/SConscript'])
 
