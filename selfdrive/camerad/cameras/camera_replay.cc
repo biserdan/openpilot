@@ -37,7 +37,7 @@ void camera_init(VisionIpcServer *v, CameraState *s, int camera_id, unsigned int
   s->ci = ci;
   s->camera_num = camera_id;
   s->fps = fps;
-  s->buf.init(device_id, ctx, s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
+  s->buf.init(s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
 }
 
 void camera_close(CameraState *s) {
