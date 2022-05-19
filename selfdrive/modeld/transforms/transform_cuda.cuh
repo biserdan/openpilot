@@ -3,11 +3,6 @@
 #include <stdint.h>
 #include <math.h>
 #include <cuda_runtime.h>
-#include <npp.h>
-#include <nppdefs.h>
-#include <nppcore.h>
-#include <nppi.h>
-#include <npps.h>
 
 #define checkMsg(msg) __checkMsg(msg, __FILE__, __LINE__)
 #define checkMsgNoFail(msg) __checkMsgNoFail(msg, __FILE__, __LINE__)

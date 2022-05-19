@@ -98,6 +98,27 @@ if arch == "larch64":
   cflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   cxxflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   rpath += ["/usr/local/lib"]
+# NVIDIA Jetson Nano
+elif arch == "aarch64":
+  cpppath = [
+    "#third_party/opencl/include",
+  ]
+
+  libpath = [
+    "/usr/local/lib",
+    "/usr/lib",
+    "/system/vendor/lib64",
+    f"#third_party/acados/{arch}/lib",
+    "#third_party/libyuv/larch64/lib",
+    "#third_party/mapbox-gl-native-qt/aarch64",
+    "/usr/lib/aarch64-linux-gnu"
+  ]
+  cpppath += [
+    "#selfdrive/camerad/include",
+  ]
+  cflags = ["-mcpu=cortex-a57"]
+  cxxflags = ["-mcpu=cortex-a57"]
+  rpath += ["/usr/local/lib"]
 else:
   cflags = []
   cxxflags = []
@@ -216,11 +237,15 @@ env = Environment(
     "#opendbc/can",
     "#selfdrive/boardd",
     "#selfdrive/common",
+    "/usr/local/cuda/lib64",
+    "/usr/local/cuda/include"
   ],
   CYTHONCFILESUFFIX=".cpp",
   COMPILATIONDB_USE_ABSPATH=True,
-  tools=["default", "cython", "compilation_db","cuda"],
+  tools=["default", "cython", "compilation_db", "cuda"],
+
 )
+
 
 if arch == "Darwin":
   env['RPATHPREFIX'] = "-rpath "
@@ -375,7 +400,7 @@ if arch != "larch64":
   })
 
 Export('rednose_config')
-SConscript(['rednose/SConscript'])
+# SConscript(['rednose/SConscript'])
 
 # Build openpilot
 
@@ -402,7 +427,7 @@ SConscript(['selfdrive/clocksd/SConscript'])
 
 # SConscript(['selfdrive/loggerd/SConscript'])
 
-SConscript(['selfdrive/locationd/SConscript'])
+# SConscript(['selfdrive/locationd/SConscript'])
 SConscript(['selfdrive/sensord/SConscript'])
 SConscript(['selfdrive/ui/SConscript'])
 

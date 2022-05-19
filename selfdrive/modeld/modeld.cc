@@ -7,7 +7,7 @@
 
 #include "cereal/messaging/messaging.h"
 #include "cereal/visionipc/visionipc_client.h"
-#include "selfdrive/common/clutil.h"
+// #include "selfdrive/common/clutil.h"
 #include "selfdrive/common/params.h"
 #include "selfdrive/common/swaglog.h"
 #include "selfdrive/common/util.h"
@@ -175,14 +175,17 @@ int main(int argc, char **argv) {
   bool use_extra_client = !main_wide_camera;  // set for single camera mode
 
   // cl init
-  cl_device_id device_id = cl_get_device_id(CL_DEVICE_TYPE_DEFAULT);
-  cl_context context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, NULL, NULL, &err));
+  // cl_device_id device_id = cl_get_device_id(CL_DEVICE_TYPE_DEFAULT);
+  // cl_context context = CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, NULL, NULL, &err));
 
   // init the models
   ModelState model;
+  // model_init(&model, device_id, context);
   model_init(&model);
   LOGW("models loaded, modeld starting");
 
+  // VisionIpcClient vipc_client_main = VisionIpcClient("camerad", main_wide_camera ? VISION_STREAM_WIDE_ROAD : VISION_STREAM_ROAD, true, device_id, context);
+  // VisionIpcClient vipc_client_extra = VisionIpcClient("camerad", VISION_STREAM_WIDE_ROAD, false, device_id, context);
   VisionIpcClient vipc_client_main = VisionIpcClient("camerad", main_wide_camera ? VISION_STREAM_WIDE_ROAD : VISION_STREAM_ROAD, true);
   VisionIpcClient vipc_client_extra = VisionIpcClient("camerad", VISION_STREAM_WIDE_ROAD, false);
 
@@ -209,6 +212,6 @@ int main(int argc, char **argv) {
   }
 
   model_free(&model);
-  CL_CHECK(clReleaseContext(context));
+  // CL_CHECK(clReleaseContext(context));
   return 0;
 }

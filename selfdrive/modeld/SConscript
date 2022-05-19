@@ -4,8 +4,7 @@ Import('env', 'arch', 'cereal', 'messaging', 'common', 'gpucommon', 'visionipc')
 lenv = env.Clone()
 
 libs = [cereal, messaging, common, visionipc, gpucommon,
-        'OpenCL', 'SNPE', 'capnp', 'zmq', 'kj', 'yuv', 'glut','GLEW','cuda','cudart']
-
+        'OpenCL', 'SNPE', 'capnp', 'zmq', 'kj', 'yuv', 'glut', 'GLEW', 'cuda', 'cudart']
 
 def get_dlsym_offset():
   """Returns the offset between dlopen and dlsym in libdl.so"""
@@ -21,7 +20,6 @@ common_src = [
   "runners/snpemodel.cc",
   "transforms/loadyuv.cc",
   "transforms/transform.cc",
-  "transforms/hello_cuda.cu",
   "transforms/loadyuv_cuda.cu",
   "transforms/transform_cuda.cu"
 ]
@@ -62,6 +60,11 @@ else:
     # no SNPE on Mac
     del libs[libs.index('SNPE')]
     del common_src[common_src.index('runners/snpemodel.cc')]
+    
+  if arch == "aarch64":
+    # no SNPE on NVIDIA Jetson Nano
+    del libs[libs.index('SNPE')]
+    del common_src[common_src.index('runners/snpemodel.cc')]
 
 common_model = lenv.Object(common_src)
 
@@ -95,3 +98,7 @@ lenv.Program('_modeld', [
     "modeld.cc",
     "models/driving.cc",
   ]+common_model, LIBS=libs)
+  
+# lenv.Program('cuda_tests/hello_cuda', ["cuda_tests/hello.cu"], LIBS=libs+['cudart', 'stdc++'])
+
+# lenv.Program('cuda_tests/tst_cuda', ["cuda_tests/tst.cu", "cuda_tests/tst_main.cpp"], LIBS=libs+['cudart', 'stdc++'])

@@ -1,5 +1,4 @@
 #include "selfdrive/modeld/transforms/loadyuv.h"
-#include "selfdrive/modeld/transforms/hello_cuda.cuh"
 #include "selfdrive/modeld/transforms/loadyuv_cuda.cuh"
 
 #include <cassert>
@@ -8,7 +7,6 @@
 
 void loadyuv_init(LoadYUVState* s, int width, int height) {
   fprintf(stdout, "loadyuv_init\n");
-  start_hello();
   memset(s, 0, sizeof(*s));
 
   s->width = width;

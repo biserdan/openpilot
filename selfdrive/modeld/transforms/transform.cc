@@ -1,5 +1,4 @@
 #include "selfdrive/modeld/transforms/transform.h"
-// #include "selfdrive/modeld/transforms/hello_cuda.cuh"
 #include "selfdrive/modeld/transforms/transform_cuda.cuh"
 
 #include <cassert>

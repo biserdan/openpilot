@@ -84,6 +84,7 @@ def snapshot():
 
   # Check if camerad is already started
   try:
+    print("hello")
     subprocess.check_call(["pgrep", "camerad"])
     print("Camerad already running")
     params.put_bool("IsTakingSnapshot", False)
