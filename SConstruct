@@ -72,7 +72,7 @@ lenv = {
 }
 
 rpath = lenv["LD_LIBRARY_PATH"].copy()
-
+print(arch)
 if arch == "larch64":
   lenv["LD_LIBRARY_PATH"] += ['/data/data/com.termux/files/usr/lib']
 
@@ -155,6 +155,8 @@ else:
       "#selfdrive/common",
       "/usr/lib",
       "/usr/local/lib",
+      "/usr/local/cuda/lib64",
+      "/usr/local/cuda/include"
     ]
 
   rpath += [
@@ -219,6 +221,7 @@ env = Environment(
     "#third_party",
     "#cereal",
     "#opendbc/can",
+    "/usr/local/cuda/include",
   ],
 
   CC='clang',
@@ -235,11 +238,15 @@ env = Environment(
     "#opendbc/can",
     "#selfdrive/boardd",
     "#selfdrive/common",
+    "/usr/local/cuda/lib64",
+    "/usr/local/cuda/include"
   ],
   CYTHONCFILESUFFIX=".cpp",
   COMPILATIONDB_USE_ABSPATH=True,
-  tools=["default", "cython", "compilation_db"],
+  tools=["default", "cython", "compilation_db", "cuda"],
+
 )
+
 
 if arch == "Darwin":
   env['RPATHPREFIX'] = "-rpath "
@@ -374,8 +381,6 @@ else:
   visionipc = [File('#cereal/libvisionipc.a')]
 
 Export('cereal', 'messaging', 'visionipc')
-
-# Build rednose library and ekf models
 
 rednose_config = {
   'generated_folder': '#selfdrive/locationd/models/generated',

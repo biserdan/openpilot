@@ -95,6 +95,7 @@ class TestModeld(unittest.TestCase):
 
       mdl = self.sm['modelV2']
       odo = self.sm['cameraOdometry']
+      self.assertEqual(odo.frameId, frame_id)
       self.assertEqual(mdl.frameId, frame_id)
       self.assertEqual(mdl.frameIdExtra, frame_id)
       self.assertEqual(odo.frameId, frame_id)

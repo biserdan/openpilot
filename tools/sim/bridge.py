@@ -10,11 +10,17 @@ from typing import Any
 
 import carla  # pylint: disable=import-error
 import numpy as np
+import ctypes
+
+# import numba as 
 import pyopencl as cl
 import pyopencl.array as cl_array
 
 import cereal.messaging as messaging
 from cereal import log
+
+Vision = ctypes.cdll.LoadLibrary("/home/ba22/openpilot/cereal/visionipc/visionipc_pyx.so")
+
 from cereal.visionipc.visionipc_pyx import VisionIpcServer, VisionStreamType  # pylint: disable=no-name-in-module, import-error
 from common.basedir import BASEDIR
 from common.numpy_fast import clip
@@ -84,6 +90,7 @@ class Camerad:
     cl_arg = f" -DHEIGHT={H} -DWIDTH={W} -DRGB_STRIDE={W * 3} -DUV_WIDTH={W // 2} -DUV_HEIGHT={H // 2} -DRGB_SIZE={W * H} -DCL_DEBUG "
 
     # TODO: move rgb_to_yuv.cl to local dir once the frame stream camera is removed
+    # base dir /home/ba22/openpilot
     kernel_fn = os.path.join(BASEDIR, "selfdrive", "camerad", "transforms", "rgb_to_yuv.cl")
     with open(kernel_fn) as f:
       prg = cl.Program(self.ctx, f.read()).build(cl_arg)

@@ -248,6 +248,7 @@ def finalize_update(wait_helper: WaitTimeHelper) -> None:
 
   run(["git", "reset", "--hard"], FINALIZED)
   run(["git", "submodule", "foreach", "--recursive", "git", "reset"], FINALIZED)
+  run(["git", "gc"], FINALIZED)
 
   cloudlog.info("Starting git gc")
   t = time.monotonic()

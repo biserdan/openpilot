@@ -13,8 +13,7 @@ LAG_FRAME_TOLERANCE = 2 # ms
 
 FPS_BASELINE = 20
 CAMERAS = {
-  "roadCameraState": FPS_BASELINE,
-  "driverCameraState": FPS_BASELINE // 2,
+  "roadCameraState": FPS_BASELINE
 }
 
 if TICI:
@@ -24,7 +23,7 @@ if TICI:
 class TestCamerad(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
-    if not TICI:
+    if not True:
       raise unittest.SkipTest
 
   @with_processes(['camerad'])

@@ -6,6 +6,24 @@
 #include "selfdrive/common/clutil.h"
 #include "selfdrive/common/util.h"
 
+inline void __checkMsg(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA error: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+    exit(-1);
+  }
+}
+inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+  }
+}
+
 extern ExitHandler do_exit;
 
 void camera_autoexposure(CameraState *s, float grey_frac) {}
@@ -22,7 +40,7 @@ std::string get_url(std::string route_name, const std::string &camera, int segme
   return util::string_format("%s%s/%d/%s.hevc", BASE_URL, route_name.c_str(), segment_num, camera.c_str());
 }
 
-void camera_init(VisionIpcServer *v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type, const std::string &url) {
+void camera_init(VisionIpcServer *v, CameraState *s, int camera_id, unsigned int fps, VisionStreamType rgb_type, VisionStreamType yuv_type, const std::string &url) {
   s->frame = new FrameReader();
   if (!s->frame->load(url)) {
     printf("failed to load stream from %s", url.c_str());
@@ -37,7 +55,7 @@ void camera_init(VisionIpcServer *v, CameraState *s, int camera_id, unsigned int
   s->ci = ci;
   s->camera_num = camera_id;
   s->fps = fps;
-  s->buf.init(device_id, ctx, s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
+  s->buf.init(s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
 }
 
 void camera_close(CameraState *s) {
@@ -57,7 +75,8 @@ void run_camera(CameraState *s) {
     if (s->frame->get(stream_frame_id++, rgb_buf.get(), yuv_buf.get())) {
       s->buf.camera_bufs_metadata[buf_idx] = {.frame_id = frame_id};
       auto &buf = s->buf.camera_bufs[buf_idx];
-      CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, s->frame->getRGBSize(), rgb_buf.get(), 0, NULL, NULL));
+      // CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, s->frame->getRGBSize(), rgb_buf.get(), 0, NULL, NULL));
+      checkMsg(cudaMemcpy((void *)buf.buf_cuda,(void*)rgb_buf.get(),s->frame->getRGBSize(),cudaMemcpyHostToDevice));
       s->buf.queue(buf_idx);
       ++frame_id;
       buf_idx = (buf_idx + 1) % FRAME_BUF_COUNT;
@@ -96,8 +115,8 @@ void process_road_camera(MultiCameraState *s, CameraState *c, int cnt) {
 
 }  // namespace
 
-void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx) {
-  camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, device_id, ctx,
+void cameras_init(VisionIpcServer *v, MultiCameraState *s) {
+  camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20,
               VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD, get_url(road_camera_route, "fcamera", 0));
   // camera_init(v, &s->driver_cam, CAMERA_ID_LGC615, 10, device_id, ctx,
   //             VISION_STREAM_RGB_DRIVER, VISION_STREAM_DRIVER, get_url(driver_camera_route, "dcamera", 0));
