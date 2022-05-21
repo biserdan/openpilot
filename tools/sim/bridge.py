@@ -309,6 +309,8 @@ class CarlaBridge:
 
     world_map = world.get_map()
 
+    
+
     vehicle_bp = blueprint_library.filter('vehicle.tesla.*')[1]
     spawn_points = world_map.get_spawn_points()
     assert len(spawn_points) > self._args.num_selected_spawn_point, f'''No spawn point {self._args.num_selected_spawn_point}, try a value between 0 and

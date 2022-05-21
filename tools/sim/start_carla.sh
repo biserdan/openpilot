@@ -21,6 +21,7 @@ docker run \
   --name carla_sim \
   --rm \
   --gpus all \
+  --runtime=nvidia \
   --net=host \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
   -it \
