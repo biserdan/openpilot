@@ -428,7 +428,7 @@ SConscript(['selfdrive/proclogd/SConscript'])
 SConscript(['selfdrive/clocksd/SConscript'])
 
 if(arch != "aarch64"):
-  SConscript(['selfdrive/loggerd/SConscript'])
+  # SConscript(['selfdrive/loggerd/SConscript'])
   SConscript(['selfdrive/locationd/SConscript'])
 
 SConscript(['selfdrive/sensord/SConscript'])
