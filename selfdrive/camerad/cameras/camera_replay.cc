@@ -40,7 +40,7 @@ std::string get_url(std::string route_name, const std::string &camera, int segme
   return util::string_format("%s%s/%d/%s.hevc", BASE_URL, route_name.c_str(), segment_num, camera.c_str());
 }
 
-void camera_init(VisionIpcServer *v, CameraState *s, int camera_id, unsigned int fps, cl_device_id device_id, cl_context ctx, VisionStreamType rgb_type, VisionStreamType yuv_type, const std::string &url) {
+void camera_init(VisionIpcServer *v, CameraState *s, int camera_id, unsigned int fps, VisionStreamType rgb_type, VisionStreamType yuv_type, const std::string &url) {
   s->frame = new FrameReader();
   if (!s->frame->load(url)) {
     printf("failed to load stream from %s", url.c_str());
@@ -115,8 +115,8 @@ void process_road_camera(MultiCameraState *s, CameraState *c, int cnt) {
 
 }  // namespace
 
-void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx) {
-  camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, device_id, ctx,
+void cameras_init(VisionIpcServer *v, MultiCameraState *s) {
+  camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20,
               VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD, get_url(road_camera_route, "fcamera", 0));
   // camera_init(v, &s->driver_cam, CAMERA_ID_LGC615, 10, device_id, ctx,
   //             VISION_STREAM_RGB_DRIVER, VISION_STREAM_DRIVER, get_url(driver_camera_route, "dcamera", 0));

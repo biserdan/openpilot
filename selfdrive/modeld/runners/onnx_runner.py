@@ -14,6 +14,7 @@ def read(sz):
   gt = 0
   while gt < sz * 4:
     st = os.read(0, sz * 4 - gt)
+    print(len(st))
     assert(len(st) > 0)
     dd.append(st)
     gt += len(st)
