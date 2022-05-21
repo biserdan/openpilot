@@ -98,6 +98,28 @@ if arch == "larch64":
   cflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   cxxflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   rpath += ["/usr/local/lib"]
+# NVIDIA Jetson Nano
+
+elif arch == "aarch64":
+  cpppath = [
+    "#third_party/opencl/include",
+  ]
+
+  libpath = [
+    "/usr/local/lib",
+    "/usr/lib",
+    "/system/vendor/lib64",
+    f"#third_party/acados/{arch}/lib",
+    "#third_party/libyuv/larch64/lib",
+    "#third_party/mapbox-gl-native-qt/aarch64",
+    "/usr/lib/aarch64-linux-gnu"
+  ]
+  cpppath += [
+    "#selfdrive/camerad/include",
+  ]
+  cflags = ["-mcpu=cortex-a57"]
+  cxxflags = ["-mcpu=cortex-a57"]
+  rpath += ["/usr/local/lib"]
 else:
   cflags = []
   cxxflags = []
@@ -374,7 +396,8 @@ if arch != "larch64":
   })
 
 Export('rednose_config')
-SConscript(['rednose/SConscript'])
+if(arch != "aarch64"):
+	SConscript(['rednose/SConscript'])
 
 # Build openpilot
 
@@ -399,9 +422,10 @@ SConscript(['selfdrive/boardd/SConscript'])
 SConscript(['selfdrive/proclogd/SConscript'])
 SConscript(['selfdrive/clocksd/SConscript'])
 
-SConscript(['selfdrive/loggerd/SConscript'])
+if(arch != "aarch64"):
+  SConscript(['selfdrive/loggerd/SConscript'])
+  SConscript(['selfdrive/locationd/SConscript'])
 
-SConscript(['selfdrive/locationd/SConscript'])
 SConscript(['selfdrive/sensord/SConscript'])
 SConscript(['selfdrive/ui/SConscript'])
 
