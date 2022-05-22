@@ -44,7 +44,7 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
                    float_t *out_cuda, bool do_shift) {
   //cl_int global_out_off = 0;
   size_t global_out_off = 0;
-  fprintf(stdout, "do_shift=%s\n",do_shift ? "true":"false");
+  // fprintf(stdout, "do_shift=%s\n",do_shift ? "true":"false");
   // biserdan: not needed
   
   if (do_shift) {
