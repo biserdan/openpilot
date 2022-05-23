@@ -360,6 +360,8 @@ class CarlaBridge:
 
     blueprints = self.get_actor_blueprints(world, self._args.filterv, self._args.generationv)
 
+
+    # disable bicycles in simulation because openpilot don't care about them
     if self._args.safe:
         blueprints = [x for x in blueprints if int(x.get_attribute('number_of_wheels')) == 4]
 
