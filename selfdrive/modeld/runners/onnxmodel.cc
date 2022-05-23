@@ -25,7 +25,7 @@ ONNXModel::ONNXModel(const char *path, float *_output, size_t _output_size, int 
   assert(err == 0);
   err = pipe(pipeout);
   assert(err == 0);
-
+  fprintf(stdout,"start onnx_runner.py\n");
   std::string exe_dir = util::dir_name(util::readlink("/proc/self/exe"));
   std::string onnx_runner = exe_dir + "/runners/onnx_runner.py";
 

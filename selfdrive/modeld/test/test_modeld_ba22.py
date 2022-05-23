@@ -57,6 +57,7 @@ class TestModeld(unittest.TestCase):
       self.sm.update(1000)
 
   def test_modeld(self):
+    print('test model')
     for n in range(1, 500):
       cs = self._send_frames(n)
       self._wait()

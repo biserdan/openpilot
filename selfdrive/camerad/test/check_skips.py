@@ -14,6 +14,7 @@ if __name__ == "__main__":
     sm.update()
 
     for i in range(len(all_sockets)):
+      print('Socket: ',i)
       if not sm.updated[all_sockets[i]]:
         continue
       this_id[i] = sm[all_sockets[i]].frameId

@@ -48,9 +48,9 @@ env.Program('camerad', [
 #   'transforms/rgb_to_yuv_cl.cc',
 # ], LIBS=libs)
 
-# env.Program('test/ae_gray_test', [
-#     'test/ae_gray_test.cc',
-#     'cameras/camera_common.cc',
-#     'transforms/rgb_to_yuv.cc',
-#     'transforms/rgb_to_yuv_kernel.cu',
-#   ], LIBS=libs)
+env.Program('test/ae_gray_test', [
+     'test/ae_gray_test.cc',
+     'cameras/camera_common.cc',
+     'transforms/rgb_to_yuv.cc',
+     'transforms/rgb_to_yuv_kernel.cu',
+   ], LIBS=libs)
