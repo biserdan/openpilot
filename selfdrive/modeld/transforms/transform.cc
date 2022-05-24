@@ -111,6 +111,18 @@ void transform_queue(Transform* s,
 
   //CL_CHECK(clEnqueueNDRangeKernel(q, s->krnl, 2, NULL,
   //                            (const size_t*)&work_size_y, NULL, 0, 0, NULL));
+
+  /*printf("in_y_width: %d\n",in_y_width);
+  printf("in_y_offset: %d\n",in_y_offset);
+
+  printf("in_y_height: %d\n",in_y_height);
+  printf("in_y_width: %d\n",in_y_width);
+
+  printf("out_y_width: %d\n",out_y_width);
+  printf("out_y_height: %d\n",out_y_height);*/
+
+
+
   start_warpPerspective(in_yuv,in_y_width,in_y_offset,in_y_height,in_y_width,
       out_y,out_y_width,zero,out_y_height,out_y_width,s->m_y_cuda_d,
       (const size_t*)&work_size_y);

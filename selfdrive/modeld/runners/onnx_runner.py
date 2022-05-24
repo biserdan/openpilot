@@ -32,7 +32,7 @@ def run_loop(m):
   # run once to initialize CUDA provider
   if "CUDAExecutionProvider" in m.get_providers():
     m.run(None, dict(zip(keys, [np.zeros(shp, dtype=np.float32) for shp in ishapes])))
-  print("test ready to run onnx model", keys, ishapes, file=sys.stderr)
+  print("ready to run onnx model", keys, ishapes, file=sys.stderr)
   while 1:
     inputs = []
     for shp in ishapes:
