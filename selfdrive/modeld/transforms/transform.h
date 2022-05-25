@@ -8,6 +8,7 @@
 #endif
 
 #include "selfdrive/common/mat.h"
+#include <inttypes.h>
 
 typedef struct {
   cl_kernel krnl;

@@ -5,6 +5,8 @@
 
 #include "selfdrive/common/clutil.h"
 
+// test test
+
 void transform_init(Transform* s, cl_context ctx, cl_device_id device_id) {
   memset(s, 0, sizeof(*s));
 
@@ -55,6 +57,8 @@ void transform_queue(Transform* s,
   const int out_uv_width = out_width/2;
   const int out_uv_height = out_height/2;
 
+  //*((uint64_t*)in_yuv) = 111111;
+
   CL_CHECK(clSetKernelArg(s->krnl, 0, sizeof(cl_mem), &in_yuv));
   CL_CHECK(clSetKernelArg(s->krnl, 1, sizeof(cl_int), &in_y_width));
   CL_CHECK(clSetKernelArg(s->krnl, 2, sizeof(cl_int), &in_y_offset));
@@ -69,8 +73,14 @@ void transform_queue(Transform* s,
 
   const size_t work_size_y[2] = {(size_t)out_y_width, (size_t)out_y_height};
 
+
+  //printf("in_yuv: start uint64_t= %" PRIx64 "\n",*((uint64_t*)in_yuv));
+
   CL_CHECK(clEnqueueNDRangeKernel(q, s->krnl, 2, NULL,
                               (const size_t*)&work_size_y, NULL, 0, 0, NULL));
+
+  //printf("out_y: start uint64_t= %" PRIx64 "\n",*((uint64_t*)out_y));
+  //printf("s->m_y_cl: start uint64_t= %" PRIx64 "\n",*((uint64_t*)s->m_y_cl));
 
   const size_t work_size_uv[2] = {(size_t)out_uv_width, (size_t)out_uv_height};
 

@@ -19,7 +19,8 @@ common_src = [
   "models/commonmodel.cc",
   "runners/snpemodel.cc",
   "transforms/loadyuv.cc",
-  "transforms/transform.cc"
+  "transforms/transform.cc",
+  "transforms/test_transform.cc"
 ]
 
 thneed_src = [
