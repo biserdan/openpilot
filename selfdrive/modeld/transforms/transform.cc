@@ -81,7 +81,7 @@ void transform_queue(Transform* s,
   checkMsg(cudaMemcpy((void *)s->m_y_cuda_d,(void*)projection_y.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
   checkMsg(cudaMemcpy((void *)s->m_uv_cuda_d,(void*)projection_uv.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
 
-
+  // printf("in_width: %d\nin_y_height: %d\nout_width: %d\nout_eight: %d\n", in_width, in_height, out_width, out_height);
   const int in_y_width = in_width;
   const int in_y_height = in_height;
   const int in_uv_width = in_width/2;

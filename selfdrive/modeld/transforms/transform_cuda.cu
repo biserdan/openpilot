@@ -83,11 +83,12 @@ __global__ void warpPerspective(const uint8_t * src,
         // int itab3 = convert_short_sat_rte( taby*tabx * INTER_REMAP_COEF_SCALE );
 
         int val = v0 * itab0 +  v1 * itab1 + v2 * itab2 + v3 * itab3;
-
+        printf("val= %d\n",val);
         uint8_t pix = ((val + (1 << (INTER_REMAP_COEF_BITS-1))) > UINT8_MAX) ? UINT8_MAX :
                       static_cast<uint8_t>(val + (1 << (INTER_REMAP_COEF_BITS-1)));  
         if(pix != pix) pix = 0;
         // uchar pix = convert_uchar_sat((val + (1 << (INTER_REMAP_COEF_BITS-1))) >> INTER_REMAP_COEF_BITS);
+        printf("pix= %d\n",pix);
         dst[dst_index] = pix;
     }
 
