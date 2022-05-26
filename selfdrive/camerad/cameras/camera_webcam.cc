@@ -122,6 +122,7 @@ static void road_camera_thread(CameraState *s) {
   run_camera(s, cap_road, ts);
 }
 
+/*
 void driver_camera_thread(CameraState *s) {
   cv::VideoCapture cap_driver(DRIVER_CAMERA_ID, cv::CAP_V4L2); // driver
   cap_driver.set(cv::CAP_PROP_FRAME_WIDTH, 853);
@@ -139,6 +140,7 @@ void driver_camera_thread(CameraState *s) {
   //                 0.0, 0.0, 1.0};
   run_camera(s, cap_driver, ts);
 }
+*/
 
 }  // namespace
 
@@ -152,7 +154,7 @@ void driver_camera_thread(CameraState *s) {
 
 void cameras_init(VisionIpcServer *v, MultiCameraState *s) {
   camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
-  camera_init(v, &s->driver_cam, CAMERA_ID_LGC615, 10, VISION_STREAM_RGB_DRIVER, VISION_STREAM_DRIVER);
+  // camera_init(v, &s->driver_cam, CAMERA_ID_LGC615, 10, VISION_STREAM_RGB_DRIVER, VISION_STREAM_DRIVER);
   s->pm = new PubMaster({"roadCameraState", "driverCameraState", "thumbnail"});
 }
 
@@ -171,7 +173,7 @@ void camera_autoexposure(CameraState *s, float grey_frac) {}
 
 void cameras_open(MultiCameraState *s) {
   // LOG("*** open driver camera ***");
-  camera_open(&s->driver_cam, false);
+  // camera_open(&s->driver_cam, false);
   // LOG("*** open road camera ***");
   camera_open(&s->road_cam, true);
 }
@@ -183,13 +185,13 @@ void camera_rc_open(MultiCameraState* s) {
 
 void cameras_close(MultiCameraState *s) {
   camera_close(&s->road_cam);
-  camera_close(&s->driver_cam);
+  // camera_close(&s->driver_cam);
   delete s->pm;
 }
 
 void camera_rc_close(MultiCameraState* s) {
     camera_close(&s->road_cam);
-    camera_close(&s->driver_cam);
+    // camera_close(&s->driver_cam);
     delete s->pm;
 }
 
@@ -214,11 +216,11 @@ void process_road_camera(MultiCameraState *s, CameraState *c, int cnt) {
 void cameras_run(MultiCameraState *s) {
   std::vector<std::thread> threads;
   threads.push_back(start_process_thread(s, &s->road_cam, process_road_camera));
-  threads.push_back(start_process_thread(s, &s->driver_cam, process_driver_camera));
+  // threads.push_back(start_process_thread(s, &s->driver_cam, process_driver_camera));
 
   std::thread t_rear = std::thread(road_camera_thread, &s->road_cam);
   util::set_thread_name("webcam_thread");
-  driver_camera_thread(&s->driver_cam);
+  // driver_camera_thread(&s->driver_cam);
 
   t_rear.join();
 

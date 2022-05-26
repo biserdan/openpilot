@@ -393,16 +393,17 @@ rednose_config = {
 if arch != "larch64":
   rednose_config['to_build'].update({
     'gnss': ('#selfdrive/locationd/models/gnss_kf.py', True, []),
-    'loc_4': ('#selfdrive/locationd/models/loc_kf.py', True, []),
+    
     'pos_computer_4': ('#rednose/helpers/lst_sq_computer.py', False, []),
     'pos_computer_5': ('#rednose/helpers/lst_sq_computer.py', False, []),
     'feature_handler_5': ('#rednose/helpers/feature_handler.py', False, []),
     'lane': ('#xx/pipeline/lib/ekf/lane_kf.py', True, []),
   })
 
+#'loc_4': ('#selfdrive/locationd/models/loc_kf.py', True, []),
+
 Export('rednose_config')
-if(arch != "aarch64"):
-	SConscript(['rednose/SConscript'])
+SConscript(['rednose/SConscript'])
 
 # Build openpilot
 
@@ -427,9 +428,8 @@ SConscript(['selfdrive/boardd/SConscript'])
 SConscript(['selfdrive/proclogd/SConscript'])
 SConscript(['selfdrive/clocksd/SConscript'])
 
-if(arch != "aarch64"):
-  # SConscript(['selfdrive/loggerd/SConscript'])
-  SConscript(['selfdrive/locationd/SConscript'])
+SConscript(['selfdrive/loggerd/SConscript'])
+SConscript(['selfdrive/locationd/SConscript'])
 
 SConscript(['selfdrive/sensord/SConscript'])
 SConscript(['selfdrive/ui/SConscript'])
