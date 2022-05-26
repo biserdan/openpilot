@@ -99,7 +99,6 @@ void start_warpPerspective(uint8_t *y_cuda_d, int src_step, int src_offset,
         int dst_rows,int dst_cols, float_t * M, const size_t *work_size_y)
 { 
   dim3 gridShape = dim3 (work_size_y[0],work_size_y[1]);  
-  printf("start uint64_t= %" PRIx64 "\n",*((uint64_t*)y_cuda_d));
   warpPerspective<<< gridShape, 1>>>(y_cuda_d,src_step,src_offset,src_rows,
       src_cols,dst,dst_step,dst_offset,dst_rows,dst_cols,M);
    sleep(1);   // Necessary to give time to let GPU threads run !!!
