@@ -10,12 +10,12 @@ os.environ["OMP_WAIT_POLICY"] = "PASSIVE"
 import onnxruntime as ort # pylint: disable=import-error
 
 def read(sz):
-  print('onnx_runner.py: read')
+  # print('onnx_runner.py: read')
   dd = []
   gt = 0
   while gt < sz * 4:
     st = os.read(0, sz * 4 - gt)
-    print(len(st))
+    # print(len(st))
     assert(len(st) > 0)
     dd.append(st)
     gt += len(st)
@@ -26,7 +26,7 @@ def write(d):
 
 def run_loop(m):
   ishapes = [[1]+ii.shape[1:] for ii in m.get_inputs()]
-  print(ishapes)
+  # print(ishapes)
   keys = [x.name for x in m.get_inputs()]
 
   # run once to initialize CUDA provider
@@ -38,11 +38,11 @@ def run_loop(m):
     for shp in ishapes:
       ts = np.product(shp)
       #print("reshaping %s with offset %d" % (str(shp), offset), file=sys.stderr)
-      print("inputs")
+      #print("inputs")
       inputs.append(read(ts).reshape(shp))
     ret = m.run(None, dict(zip(keys, inputs)))
-    print("while")
-    #print(ret, file=sys.stderr)
+    # print("while")
+    # print(ret, file=sys.stderr)
     for r in ret:
       write(r)
 
@@ -66,5 +66,5 @@ if __name__ == "__main__":
   print("Onnx selected provider: ", [provider], file=sys.stderr)
   ort_session = ort.InferenceSession(sys.argv[1], options, providers=[provider])
   print("Onnx using ", ort_session.get_providers(), file=sys.stderr)
-  print('start loop')
+  # print('start loop')
   run_loop(ort_session)
