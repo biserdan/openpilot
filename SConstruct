@@ -428,7 +428,7 @@ SConscript(['selfdrive/boardd/SConscript'])
 SConscript(['selfdrive/proclogd/SConscript'])
 SConscript(['selfdrive/clocksd/SConscript'])
 
-SConscript(['selfdrive/loggerd/SConscript'])
+# SConscript(['selfdrive/loggerd/SConscript'])
 SConscript(['selfdrive/locationd/SConscript'])
 
 SConscript(['selfdrive/sensord/SConscript'])
