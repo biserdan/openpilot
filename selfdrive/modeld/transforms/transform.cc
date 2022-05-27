@@ -81,7 +81,7 @@ void transform_queue(Transform* s,
   checkMsg(cudaMemcpy((void *)s->m_y_cuda_d,(void*)projection_y.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
   checkMsg(cudaMemcpy((void *)s->m_uv_cuda_d,(void*)projection_uv.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
 
-
+  // printf("in_width: %d\nin_y_height: %d\nout_width: %d\nout_eight: %d\n", in_width, in_height, out_width, out_height);
   const int in_y_width = in_width;
   const int in_y_height = in_height;
   const int in_uv_width = in_width/2;
@@ -121,11 +121,14 @@ void transform_queue(Transform* s,
   printf("out_y_width: %d\n",out_y_width);
   printf("out_y_height: %d\n",out_y_height);*/
 
-
+  // printf("in_yuv uint64_t= %" PRIx64 "\n",*((uint64_t*)in_yuv));
 
   start_warpPerspective(in_yuv,in_y_width,in_y_offset,in_y_height,in_y_width,
       out_y,out_y_width,zero,out_y_height,out_y_width,s->m_y_cuda_d,
       (const size_t*)&work_size_y);
+  
+  // printf("out_y uint64_t= %" PRIx64 "\n",*((uint64_t*)out_y));
+  // printf("&s->m_y_cl uint64_t= %" PRIx64 "\n",*((uint64_t*)s->m_y_cl));
 
   const size_t work_size_uv[2] = {(size_t)out_uv_width, (size_t)out_uv_height};
 
