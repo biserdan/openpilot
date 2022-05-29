@@ -8,13 +8,11 @@
 
 
 void start_loadys(uint8_t *y_cuda_d, float_t *out_cuda, 
-    size_t *global_out_off, const int loadys_work_size,
+    int global_out_off, const int loadys_work_size,
     int widht, int height);
-/*void start_loadys(uint16_t *y_cuda_d, uint16_t *out_cuda, 
-    size_t *global_out_off, size_t *loadys_work_size);*/
 
 void start_loaduv(uint8_t *u_cuda_d, float_t *out_cuda, 
-    size_t *global_out_off, const int loaduv_work_size);
+    int global_out_off, const int loaduv_work_size);
 
 void start_copy(float_t *inout, 
-    size_t *in_offset, const int copy_work_size);
+    int in_offset, const int copy_work_size);
