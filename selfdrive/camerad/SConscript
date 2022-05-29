@@ -42,3 +42,9 @@ if GetOption("test"):
       'cameras/camera_common.cc',
       'transforms/rgb_to_yuv.cc',
     ], LIBS=libs)
+  env.Program('rgb_to_yuv_test', [
+      'transforms/rgb_to_yuv_test.cc',
+      'transforms/rgb_to_yuv.cc',
+      'cameras/camera_common.cc',
+      cameras,
+    ], LIBS=libs)

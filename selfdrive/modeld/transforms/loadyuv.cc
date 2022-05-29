@@ -9,7 +9,8 @@ void loadyuv_init(LoadYUVState* s, cl_context ctx, cl_device_id device_id, int w
 
   s->width = width;
   s->height = height;
-
+  //printf("width: %d, height: %d\n",width,height);
+  //width: 512, height: 256
   char args[1024];
   snprintf(args, sizeof(args),
            "-cl-fast-relaxed-math -cl-denorms-are-zero "
@@ -35,6 +36,16 @@ void loadyuv_queue(LoadYUVState* s, cl_command_queue q,
                    cl_mem y_cl, cl_mem u_cl, cl_mem v_cl,
                    cl_mem out_cl, bool do_shift) {
   cl_int global_out_off = 0;
+  //printf("global_out_off: %d\n",(s->width*s->height) + (s->width/2)*(s->height/2)*2);
+  // global_out_off: 196608
+  /*size_t test;
+  CL_CHECK(clGetMemObjectInfo(y_cl, CL_MEM_SIZE, sizeof(size_t),&test,NULL));
+  printf("Size y_cl: %zu\n", test);*/
+
+  //Size out_cl: 786432
+  //Size y_cl: 131072
+
+
   if (do_shift) {
     // shift the image in slot 1 to slot 0, then place the new image in slot 1
     global_out_off += (s->width*s->height) + (s->width/2)*(s->height/2)*2;

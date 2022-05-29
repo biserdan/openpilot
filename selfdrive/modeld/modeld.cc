@@ -14,6 +14,7 @@
 #include "selfdrive/hardware/hw.h"
 #include "selfdrive/modeld/models/driving.h"
 #include "selfdrive/modeld/transforms/test_transform.h"
+#include "selfdrive/modeld/transforms/test_loadyuv.h"
 
 ExitHandler do_exit;
 
@@ -164,7 +165,8 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
 }
 
 int main(int argc, char **argv) {
-  test_transform();
+  //test_transform();
+  test_loadyuv();
   /*if (Hardware::TICI()) {
     int ret;
     ret = util::set_realtime_priority(54);

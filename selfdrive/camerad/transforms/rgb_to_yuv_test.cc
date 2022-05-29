@@ -104,11 +104,11 @@ int main(int argc, char** argv) {
   cl_context context;
   cl_init(device_id, context)	;
 
-  int err;
+  int error;
   const cl_queue_properties props[] = {0}; //CL_QUEUE_PRIORITY_KHR, CL_QUEUE_PRIORITY_HIGH_KHR, 0};
-  cl_command_queue q = clCreateCommandQueueWithProperties(context, device_id, props, &err);
-  if(err != 0) {
-    std::cout << "clCreateCommandQueueWithProperties error: " << err << std::endl;
+  cl_command_queue q = clCreateCommandQueueWithProperties(context, device_id, props, &error);
+  if(error != 0) {
+    std::cout << "clCreateCommandQueueWithProperties error: " << error << std::endl;
   }
 
   int width = 1164;
@@ -121,8 +121,8 @@ int main(int argc, char** argv) {
         {
         case 'f':
           std::cout << "Using front camera dimensions" << std::endl;
-          int width = 1152;
-          int height = 846;
+          width = 1152;
+          height = 846;
         }
   }
 
@@ -130,8 +130,7 @@ int main(int argc, char** argv) {
   uint8_t *rgb_frame = new uint8_t[width * height * 3];
 
 
-  RGBToYUVState rgb_to_yuv_state;
-  rgb_to_yuv_init(&rgb_to_yuv_state, context, device_id, width, height, width * 3);
+  Rgb2Yuv rgb_to_yuv_state( context, device_id, width, height, width * 3);
 
   int frame_yuv_buf_size = width * height * 3 / 2;
   cl_mem yuv_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, frame_yuv_buf_size, (void*)NULL, &err));
@@ -146,8 +145,8 @@ int main(int argc, char** argv) {
   srand (time(NULL));
 
   for (int i = 0; i < 100; i++) {
-    for (int i = 0; i < width * height * 3; i++) {
-      rgb_frame[i] = (uint8_t)rand();
+    for (int j = 0; j < width * height * 3; j++) {
+      rgb_frame[j] = (uint8_t)rand();
     }
 
     double t1 = millis_since_boot();
@@ -161,13 +160,13 @@ int main(int argc, char** argv) {
 
     clEnqueueWriteBuffer(q, rgb_cl, CL_TRUE, 0, width * height * 3, (void *)rgb_frame, 0, NULL, NULL);
     t1 = millis_since_boot();
-    rgb_to_yuv_queue(&rgb_to_yuv_state, q, rgb_cl, yuv_cl);
+    rgb_to_yuv_state.queue(q, rgb_cl, yuv_cl);
     t2 = millis_since_boot();
 
     //printf("OpenCL: rgb to yuv: %.2fms\n", t2-t1);
     uint8_t *yyy = (uint8_t *)clEnqueueMapBuffer(q, yuv_cl, CL_TRUE,
                                                  CL_MAP_READ, 0, frame_yuv_buf_size,
-                                                 0, NULL, NULL, &err);
+                                                 0, NULL, NULL, &error);
     if(!compare_results(frame_yuv_ptr_y, yyy, frame_yuv_buf_size, width, width, height, (uint8_t*)rgb_frame))
       mismatched++;
     clEnqueueUnmapMemObject(q, yuv_cl, yyy, 0, NULL, NULL);
@@ -180,7 +179,6 @@ int main(int argc, char** argv) {
   printf("Matched: %d, Mismatched: %d\n", counter - mismatched, mismatched);
 
   delete[] frame_yuv_buf;
-  rgb_to_yuv_destroy(&rgb_to_yuv_state);
   clReleaseContext(context);
   delete[] rgb_frame;
 

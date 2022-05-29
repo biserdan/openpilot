@@ -14,7 +14,7 @@ ModelFrame::ModelFrame(cl_device_id device_id, cl_context context) {
 
   q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
 
-  printf("y_cl: length: %d\n",MODEL_WIDTH * MODEL_HEIGHT);
+  //printf("y_cl: length: %d\n",MODEL_WIDTH * MODEL_HEIGHT);
   y_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_WIDTH * MODEL_HEIGHT, NULL, &err));
   u_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
   v_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));

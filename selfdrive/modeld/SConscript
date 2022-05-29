@@ -20,7 +20,8 @@ common_src = [
   "runners/snpemodel.cc",
   "transforms/loadyuv.cc",
   "transforms/transform.cc",
-  "transforms/test_transform.cc"
+  "transforms/test_transform.cc",
+  "transforms/test_loadyuv.cc"
 ]
 
 thneed_src = [
