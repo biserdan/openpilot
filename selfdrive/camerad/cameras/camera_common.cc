@@ -70,6 +70,15 @@ private:
   bool hdr_;
 };
 
+inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+  }
+}
+
 //void CameraBuf::init(cl_device_id device_id, cl_context context, CameraState *s, VisionIpcServer * v, int frame_cnt, VisionStreamType init_rgb_type, VisionStreamType init_yuv_type, release_cb init_release_callback) {
 void CameraBuf::init(CameraState *s, VisionIpcServer * v, int frame_cnt, VisionStreamType init_rgb_type, VisionStreamType init_yuv_type, release_cb init_release_callback) {
   vipc_server = v;
@@ -89,9 +98,9 @@ void CameraBuf::init(CameraState *s, VisionIpcServer * v, int frame_cnt, VisionS
   for (int i = 0; i < frame_buf_count; i++) {
     camera_bufs[i].allocate(frame_size);
 //    camera_bufs[i].init_cl(device_id, context);
-    camera_bufs[i].init_cuda(); // TODO
+    camera_bufs[i].init_cuda(); 
   }
-  LOGD("allocated %d CL buffers", frame_buf_count);
+  LOGD("allocated %d CUDA buffers", frame_buf_count);
 
   rgb_width = ci->frame_width;
   rgb_height = ci->frame_height;
@@ -146,6 +155,7 @@ bool CameraBuf::acquire() {
   cur_rgb_buf = vipc_server->get_buffer(rgb_type);
   // cl_mem camrabuf_cl = camera_bufs[cur_buf_idx].buf_cl;
   // cl_event event;
+  void *camrabuf_cuda = camera_bufs[cur_buf_idx].buf_cuda;
 
   double start_time = millis_since_boot();
 
@@ -165,6 +175,9 @@ bool CameraBuf::acquire() {
 //     assert(rgb_stride == camera_state->ci.frame_stride);
 //     CL_CHECK(clEnqueueCopyBuffer(q, camrabuf_cl, cur_rgb_buf->buf_cl, 0, 0, cur_rgb_buf->len, 0, 0, &event));
 //   }
+  assert(rgb_stride == camera_state->ci.frame_stride);
+  // checkMsgNoFail(cudaMemcpy(cur_rgb_buf->buf_cuda, camrabuf_cuda, cur_rgb_buf->len, cudaMemcpyDeviceToDevice));
+  cur_rgb_buf->buf_cuda = camrabuf_cuda;
 
   // clWaitForEvents(1, &event);
   // CL_CHECK(clReleaseEvent(event));
@@ -174,6 +187,7 @@ bool CameraBuf::acquire() {
   rgb2yuv->queue(cur_rgb_buf->buf_cuda, cur_yuv_buf->buf_cuda);
 
   cur_frame_data.processing_time = (millis_since_boot() - start_time) / 1000.0;
+  // printf("transform processing time: \t%f\n", cur_frame_data.processing_time);
 
   VisionIpcBufExtra extra = {
                         cur_frame_data.frame_id,
@@ -268,7 +282,7 @@ static kj::Array<capnp::byte> yuv420_to_jpeg(const CameraBuf *b, int thumbnail_w
     if (result != 0) {
       LOGE("Generate YUV thumbnail failed.");
       return {};
-    }
+    } 
   }
 
   struct jpeg_compress_struct cinfo;

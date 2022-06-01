@@ -400,9 +400,10 @@ if arch != "larch64":
     'lane': ('#xx/pipeline/lib/ekf/lane_kf.py', True, []),
   })
 
+
+
 Export('rednose_config')
-if(arch != "aarch64"):
-	SConscript(['rednose/SConscript'])
+SConscript(['rednose/SConscript'])
 
 # Build openpilot
 
@@ -427,9 +428,8 @@ SConscript(['selfdrive/boardd/SConscript'])
 SConscript(['selfdrive/proclogd/SConscript'])
 SConscript(['selfdrive/clocksd/SConscript'])
 
-if(arch != "aarch64"):
-  # SConscript(['selfdrive/loggerd/SConscript'])
-  SConscript(['selfdrive/locationd/SConscript'])
+# SConscript(['selfdrive/loggerd/SConscript'])
+SConscript(['selfdrive/locationd/SConscript'])
 
 SConscript(['selfdrive/sensord/SConscript'])
 SConscript(['selfdrive/ui/SConscript'])

@@ -81,6 +81,7 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
     while (meta_main.timestamp_sof < meta_extra.timestamp_sof + 25000000ULL) {
       buf_main = vipc_client_main.recv(&meta_main);
       if (buf_main == nullptr)  break;
+      // else printf("buf_main: %p\n", buf_main);
     }
 
     if (buf_main == nullptr) {
@@ -175,8 +176,14 @@ int main(int argc, char **argv) {
     assert(ret == 0);
   }
 
-  bool main_wide_camera = Params().getBool("EnableWideCamera");
-  bool use_extra_client = !main_wide_camera;  // set for single camera mode
+  // bool main_wide_camera = Params().getBool("EnableWideCamera");
+  // bool use_extra_client = !main_wide_camera;  // set for single camera mode
+  bool main_wide_camera = false;
+  bool use_extra_client = false;
+  if (use_extra_client)
+    printf("***extra_client for WideCamera used***\n");
+  else
+    printf("***no extra_client for WideCamera used***\n");
 
   // cl init
   // cl_device_id device_id = cl_get_device_id(CL_DEVICE_TYPE_DEFAULT);

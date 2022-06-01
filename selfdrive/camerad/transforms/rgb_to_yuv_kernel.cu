@@ -6,17 +6,15 @@
 #define RGB_TO_V(r, g, b) ((__mul24(r, 56) - __mul24(g, 47) - __mul24(b, 9) + 0x8080) >> 8)
 #define AVERAGE(x, y, z, w) (((uint16_t)(x) + (uint16_t)(y) + (uint16_t)(z) + (uint16_t)(w) + 1) >> 1)
 
-#define CL_DEBUG 1  
-
 __device__ void convert_2_ys(uint8_t * out_yuv, int yi, const uint8_t *rgbs1, int rgb_size) {
   uint8_t yy[2] = {
     (uint8_t) RGB_TO_Y(rgbs1[2], rgbs1[1], rgbs1[0]), 
     (uint8_t) RGB_TO_Y(rgbs1[5], rgbs1[4], rgbs1[3])
     };
-#ifdef CL_DEBUG
+// #ifdef 1
   if(yi >= rgb_size)
     printf("Y vector2 overflow, %d > %d\n", yi, rgb_size);
-#endif
+// #endif
   out_yuv[yi] = yy[0];
   out_yuv[yi+1] = yy[1];
 }
@@ -29,14 +27,14 @@ __device__ void convert_4_ys(uint8_t * out_yuv, int yi, const uint8_t *rgbs1, co
     (uint8_t) RGB_TO_Y(rgbs3[0], rgbs1[7], rgbs1[6]),
     (uint8_t) RGB_TO_Y(rgbs3[3], rgbs3[2], rgbs3[1])
   };
-#ifdef CL_DEBUG
-  if(yi > rgb_size - 4)
+// #ifdef 1
+  if(yi > rgb_size - 4) 
     printf("Y vector4 overflow, %d > %d\n", yi, rgb_size - 4);
-#endif
+// #endif
   out_yuv[yi] = yy[0];
-  out_yuv[yi+1] = yy[0];
-  out_yuv[yi+2] = yy[0];
-  out_yuv[yi+3] = yy[0];
+  out_yuv[yi+1] = yy[1];
+  out_yuv[yi+2] = yy[2];
+  out_yuv[yi+3] = yy[3];
 }
 
 
@@ -46,12 +44,12 @@ __device__ void convert_uv(uint8_t * out_yuv, int ui, int vi,
   const short ab = AVERAGE(rgbs1[0], rgbs1[3], rgbs2[0], rgbs2[3]);
   const short ag = AVERAGE(rgbs1[1], rgbs1[4], rgbs2[1], rgbs2[4]);
   const short ar = AVERAGE(rgbs1[2], rgbs1[5], rgbs2[2], rgbs2[5]);
-#ifdef CL_DEBUG
+// #ifdef 1
   if(ui >= rgb_size  + rgb_size / 4)
     printf("U overflow, %d >= %d\n", ui, rgb_size  + rgb_size / 4);
   if(vi >= rgb_size  + rgb_size / 2)
     printf("V overflow, %d >= %d\n", vi, rgb_size  + rgb_size / 2);
-#endif
+// #endif
   out_yuv[ui] = (uint8_t) RGB_TO_U(ar, ag, ab);
   out_yuv[vi] = (uint8_t) RGB_TO_V(ar, ag, ab);
 }
@@ -74,12 +72,12 @@ __device__ void convert_2_uvs(uint8_t * out_yuv, int ui, int vi,
     (uint8_t) RGB_TO_V(ar1, ag1, ab1),
     (uint8_t) RGB_TO_V(ar2, ag2, ab2)
   };
-#ifdef CL_DEBUG
+// #ifdef 1
   if(ui > rgb_size  + rgb_size / 4 - 2)
     printf("U 2 overflow, %d >= %d\n", ui, rgb_size  + rgb_size / 4 - 2);
   if(vi > rgb_size  + rgb_size / 2 - 2)
     printf("V 2 overflow, %d >= %d\n", vi, rgb_size  + rgb_size / 2 - 2);
-#endif
+// #endif
   out_yuv[ui] = u2[0];
   out_yuv[ui+1] = u2[1];
   out_yuv[vi] = v2[0];
