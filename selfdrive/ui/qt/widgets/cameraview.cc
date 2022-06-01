@@ -267,7 +267,7 @@ void CameraViewWidget::vipcConnected(VisionIpcClient *vipc_client) {
 
 void CameraViewWidget::vipcFrameReceived(VisionBuf *buf) {
   latest_frame = buf;
-  printf("buf recveived, %p\n", buf);
+  //printf("buf recveived, %p\n", buf);
   update();
 }
 

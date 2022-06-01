@@ -150,19 +150,19 @@ __global__ void loaduv(uint8_t const * const in,
 __global__ void copy(float * inout,
                    int in_offset)
 {
-  const int gid = blockIdx.x * blockDim.x + threadIdx.x;
-  if(gid%8==0) {
-  printf("inout = %f [gid + 0] = %d inout[gid + 0 + in_offset / 8] = %f [gid + 0 + in_offset / 8] = %d\n" \
-    ,inout[gid + 0],gid,inout[gid + 0 + in_offset / 8],gid + 0 + in_offset / 8);
-  inout[gid + 0] = inout[gid + 0 + in_offset / 8];
-  inout[gid + 1] = inout[gid + 1 + in_offset / 8];
-  inout[gid + 2] = inout[gid + 2 + in_offset / 8];
-  inout[gid + 3] = inout[gid + 3 + in_offset / 8];
-  inout[gid + 4] = inout[gid + 4 + in_offset / 8];
-  inout[gid + 5] = inout[gid + 5 + in_offset / 8];
-  inout[gid + 6] = inout[gid + 6 + in_offset / 8];
-  inout[gid + 7] = inout[gid + 7 + in_offset / 8];
-}
+  const int gid = (blockIdx.x * blockDim.x + threadIdx.x) * 8;
+  //if(gid%8==0) {
+  /*printf("inout = %f [gid + 0] = %d inout[gid + 0 + in_offset / 8] = %f [gid + 0 + in_offset / 8] = %d\n" \
+    ,inout[gid + 0],gid,inout[gid + 0 + in_offset / 8],gid + 0 + in_offset / 8);*/
+  inout[gid + 0] = inout[gid + 0 + in_offset];
+  inout[gid + 1] = inout[gid + 1 + in_offset];
+  inout[gid + 2] = inout[gid + 2 + in_offset];
+  inout[gid + 3] = inout[gid + 3 + in_offset];
+  inout[gid + 4] = inout[gid + 4 + in_offset];
+  inout[gid + 5] = inout[gid + 5 + in_offset];
+  inout[gid + 6] = inout[gid + 6 + in_offset];
+  inout[gid + 7] = inout[gid + 7 + in_offset];
+//}
 }
 
 void start_loadys(uint8_t *y_cuda_d, float_t *out_cuda, 
@@ -174,7 +174,8 @@ void start_loadys(uint8_t *y_cuda_d, float_t *out_cuda,
    //dim3 gridShape = dim3 (10);
    //loadys<<< gridShape, 1>>>(y_cuda_d,out_cuda,global_out_off,TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
    loadys<<< gridShape,1 >>>(y_cuda_d,out_cuda,global_out_off,TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
-   sleep(1);   // Necessary to give time to let GPU threads run !!!
+   //sleep(1);   // Necessary to give time to let GPU threads run !!!
+   cudaDeviceSynchronize();
 }
 
 void start_loaduv(uint8_t *u_cuda_d, float_t *out_cuda, 
@@ -182,13 +183,15 @@ void start_loaduv(uint8_t *u_cuda_d, float_t *out_cuda,
 {
   dim3 gridShape = dim3 (loaduv_work_size); 
    loaduv<<< gridShape,1 >>>(u_cuda_d,out_cuda,global_out_off);
-   sleep(1);   // Necessary to give time to let GPU threads run !!!
+   //sleep(1);   // Necessary to give time to let GPU threads run !!!
+   cudaDeviceSynchronize();
 }
 
 void start_copy(float_t *inout, 
     int in_offset, const int copy_work_size)
 {
-  dim3 gridShape = dim3 (copy_work_size); 
-  copy<<< gridShape,1 >>>(inout,in_offset);
-  sleep(1);   // Necessary to give time to let GPU threads run !!!
+  //dim3 gridShape = dim3 (copy_work_size); 
+  copy<<< copy_work_size/32,32 >>>(inout,in_offset);
+  //sleep(1);   // Necessary to give time to let GPU threads run !!! --> don't use
+  cudaDeviceSynchronize();
 }

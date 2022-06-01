@@ -121,6 +121,6 @@ void start_warpPerspective(uint8_t *y_cuda_d, int src_step, int src_offset,
   //warpPerspective<<< gridShape, 1>>>(y_cuda_d,src_step,src_offset,src_rows,
   warpPerspective<<< gridShape, 1 >>>(y_cuda_d,src_step,src_offset,src_rows,
       src_cols,dst,dst_step,dst_offset,dst_rows,dst_cols,M);
-
-   sleep(1);   // Necessary to give time to let GPU threads run !!!
+  cudaDeviceSynchronize();
+  //sleep(1);   // Necessary to give time to let GPU threads run !!!
 }

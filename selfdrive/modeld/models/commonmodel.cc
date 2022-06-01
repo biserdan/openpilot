@@ -90,7 +90,7 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
     }*/
     //printf("buf_size: %d MODEL_FRAME_SIZE: %d\n",buf_size,MODEL_FRAME_SIZE);
     //buf_size: 393216 MODEL_FRAME_SIZE: 196608
-    cudaDeviceSynchronize();
+    // cudaDeviceSynchronize();
     std::memmove(&input_frames[MODEL_FRAME_SIZE], net_input_cuda_h, MODEL_FRAME_SIZE * sizeof(float));
     //checkMsg(cudaMemcpy((void *)&input_frames[MODEL_FRAME_SIZE],(void *)net_input_cuda_d,MODEL_FRAME_SIZE * sizeof(float), cudaMemcpyDeviceToHost));
     //checkMsg(cudaMemcpy(&test[MODEL_FRAME_SIZE],&net_input_cuda_h[0],MODEL_FRAME_SIZE * sizeof(float), cudaMemcpyHostToHost));

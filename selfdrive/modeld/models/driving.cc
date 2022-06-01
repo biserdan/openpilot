@@ -100,8 +100,8 @@ ModelOutput* model_eval_frame(ModelState* s, VisionBuf* buf, VisionBuf* wbuf,
 #endif
 
   // if getInputBuf is not NULL, net_input_buf will be
-  printf("buf->width %lu buf->height %lu\n", buf->width, buf->height);
-  //buf->width 1928 buf->height 1208
+  // printf("buf->width %lu buf->height %lu\n", buf->width, buf->height);
+  // buf->width 1928 buf->height 1208
   auto net_input_buf = s->frame->prepare((uint8_t *)buf->buf_cuda, buf->width, buf->height, transform, (void **)(s->m->getInputBuf()));
   s->m->addImage(net_input_buf, s->frame->buf_size);
   LOGT("Image added");

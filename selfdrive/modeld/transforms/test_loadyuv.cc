@@ -57,7 +57,8 @@ void test_loadyuv() {
     
     fprintf(inputfy,"Input: \n");
     for(int i=0; i<131072; i++) {
-        y_cuda_h[i] = (i % 101);
+        //y_cuda_h[i] = (i % 101);
+        y_cuda_h[i] = rand() % 256;
         if(i%100==0) {
             fprintf(inputfy,"%d ,",y_cuda_h[i]);
             if(i%1000==0) {
@@ -87,8 +88,10 @@ void test_loadyuv() {
     fprintf(inputfv,"Input: \n");
     for(int i=0; i<32768; i++) {
         //inputuv[i] = (i % 256);
-        u_cuda_h[i] = (i % 151)+100;
-        v_cuda_h[i] = (i % 201)+150;
+        //u_cuda_h[i] = (i % 151)+100;
+        u_cuda_h[i] = rand() % 256;
+        v_cuda_h[i] = rand() % 256;
+        //v_cuda_h[i] = (i % 201)+150;
         if(i%100==0) {
             fprintf(inputfu,"%d ,",u_cuda_h[i]);
             fprintf(inputfv,"%d ," ,v_cuda_h[i]);
@@ -146,11 +149,15 @@ void test_loadyuv() {
     FILE *output_loadv_f = fopen ("test_yuvloadv.txt","w");
     fprintf(output_loadv_f,"Output v: \n");
     for(int i=0; i<196608; i++) {
-        if(i%100==0) {
+        /*if(i%100==0) {
             fprintf(output_loadv_f,"%f ,",io_buffer_h[i]);
             if(i%1000==0) {
                 fprintf(output_loadv_f,"\n");
             }
+        }*/
+        fprintf(output_loadv_f,"%f ,",io_buffer_h[i]);
+        if(i%8==0) {
+                fprintf(output_loadv_f,"\n");
         }
     }
     fclose(output_loadv_f);
@@ -164,11 +171,15 @@ void test_loadyuv() {
     FILE *output_copy_f = fopen ("test_yuvcopy.txt","w");
     fprintf(output_copy_f,"Output copy: \n");
     for(int i=0; i<196608; i++) {
-        if(i%100==0) {
+        /*if(i%100==0) {
             fprintf(output_copy_f,"%f ,",io_buffer_h[i]);
             if(i%1000==0) {
                 fprintf(output_copy_f,"\n");
             }
+        }*/
+        fprintf(output_copy_f,"%f ,",io_buffer_h[i]);
+        if(i%8==0) {
+                fprintf(output_copy_f,"\n");
         }
     }
     fclose(output_copy_f);

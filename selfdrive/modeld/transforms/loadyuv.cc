@@ -53,7 +53,7 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
     // CL_CHECK(clSetKernelArg(s->copy_krnl, 0, sizeof(cl_mem), &out_cl));
     // CL_CHECK(clSetKernelArg(s->copy_krnl, 1, sizeof(cl_int), &global_out_off));
     // const size_t copy_work_size = global_out_off/8;
-    const int copy_work_size = global_out_off;
+    const int copy_work_size = global_out_off / 8;
     //printf("copy_work_size=%lu\n",copy_work_size);
     //fprintf(stdout, "copy_work_size=%zu\n",copy_work_size);
     //CL_CHECK(clEnqueueNDRangeKernel(q, s->copy_krnl, 1, NULL,&copy_work_size, NULL, 0, 0, NULL));
@@ -97,5 +97,5 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
 
   CL_CHECK(clEnqueueNDRangeKernel(q, s->loaduv_krnl, 1, NULL,
                                &loaduv_work_size, NULL, 0, 0, NULL));*/
-  start_loaduv(y_cuda_d,out_cuda,global_out_off,loaduv_work_size);
+  start_loaduv(v_cuda_d,out_cuda,global_out_off,loaduv_work_size);
 }
