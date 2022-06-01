@@ -84,7 +84,7 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
     }
 
     if (buf_main == nullptr) {
-      // LOGE("vipc_client_main no frame");
+      LOGE("vipc_client_main no frame");
       continue;
     }
 

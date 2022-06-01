@@ -50,6 +50,15 @@ CameraInfo cameras_supported[CAMERA_ID_MAX] = {
   },
 };
 
+inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+{
+  cudaError_t err = cudaGetLastError();
+  if (cudaSuccess != err)
+  {
+    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+  }
+}
+
 void camera_open(CameraState *s, bool rear) {
   // empty
 }
@@ -67,7 +76,7 @@ void camera_init(VisionIpcServer * v, CameraState *s, int camera_id, unsigned in
   s->camera_num = camera_id;
   s->fps = fps;
 //  s->buf.init(device_id, ctx, s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
-  s->buf.init(s, v, FRAME_BUF_COUNT, rgb_type, yuv_type); //TODO
+  s->buf.init(s, v, FRAME_BUF_COUNT, rgb_type, yuv_type);
 }
 
 void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
@@ -78,24 +87,38 @@ void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
   uint32_t frame_id = 0;
   size_t buf_idx = 0;
 
+  int frameByteSize = sizeof(uint8_t)*853*480*3;
+  void *device_ptr, *host_ptr;
+  cudaSetDeviceFlags(cudaDeviceMapHost);
+  checkMsgNoFail(cudaHostAlloc((void **)&host_ptr, frameByteSize, cudaHostAllocMapped));
+  cudaHostGetDevicePointer((void **)&device_ptr, (void *) host_ptr , 0);
+   
   while (!do_exit) {
-    cv::Mat frame_mat, transformed_mat;
+    // double start_time = millis_since_boot();
+    // cv::Mat frame_mat, transformed_mat;
+    cv::Mat transformed_mat(480, 864, CV_8UC3, host_ptr);
+    cv::cuda::GpuMat d_transformed_mat(480, 864, CV_8UC3, device_ptr);
+    cv::Mat frame_mat;
     video_cap >> frame_mat;
     if (frame_mat.empty()) continue;
+
+    // printf("check frame_mat type: %d, rows: %d, cols: %d\n", frame_mat.type(), frame_mat.rows, frame_mat.cols);
+    // printf("check transformed type %d, rows: %d, cols: %d\n", transformed_mat.type(), transformed_mat.rows, d_transformed_mat.cols);
 
     cv::warpPerspective(frame_mat, transformed_mat, transform, size, cv::INTER_LINEAR, cv::BORDER_CONSTANT, 0);
 
     s->buf.camera_bufs_metadata[buf_idx] = {.frame_id = frame_id};
 
     auto &buf = s->buf.camera_bufs[buf_idx];
-    int transformed_size = transformed_mat.total() * transformed_mat.elemSize();
+    // int transformed_size = transformed_mat.total() * transformed_mat.elemSize();
     // CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, transformed_size, transformed_mat.data, 0, NULL, NULL));
-    cudaMemcpy(transformed_mat.data, buf.buf_cuda, transformed_size, cudaMemcpyDeviceToHost);
-
+    // checkMsgNoFail(cudaMemcpy(buf.buf_cuda, transformed_mat.data, transformed_size, cudaMemcpyHostToDevice)); 
+    buf.buf_cuda = d_transformed_mat.data;
     s->buf.queue(buf_idx);
 
     ++frame_id;
     buf_idx = (buf_idx + 1) % FRAME_BUF_COUNT;
+    // printf("capture processing time: \t%f\n",(millis_since_boot() - start_time) / 1000.0);
   }
 }
 
@@ -158,41 +181,19 @@ void cameras_init(VisionIpcServer *v, MultiCameraState *s) {
   s->pm = new PubMaster({"roadCameraState", "driverCameraState", "thumbnail"});
 }
 
-// void camera_rc_init(VisionIpcServer* v, MultiCameraState* s, cl_device_id device_id, cl_context ctx) {
-//     camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20, device_id, ctx,
-//         VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
-//     s->pm = new PubMaster({ "roadCameraState", "thumbnail" });
-// }
-void camera_rc_init(VisionIpcServer* v, MultiCameraState* s) {
-    camera_init(v, &s->road_cam, CAMERA_ID_LGC920, 20,
-        VISION_STREAM_RGB_ROAD, VISION_STREAM_ROAD);
-    s->pm = new PubMaster({ "roadCameraState", "thumbnail" });
-}
-
 void camera_autoexposure(CameraState *s, float grey_frac) {}
 
 void cameras_open(MultiCameraState *s) {
   // LOG("*** open driver camera ***");
   // camera_open(&s->driver_cam, false);
-  // LOG("*** open road camera ***");
+  LOG("*** open road camera ***");
   camera_open(&s->road_cam, true);
-}
-
-void camera_rc_open(MultiCameraState* s) {
-    // LOG("*** open road camera ***");
-    camera_open(&s->road_cam, true);
 }
 
 void cameras_close(MultiCameraState *s) {
   camera_close(&s->road_cam);
   // camera_close(&s->driver_cam);
   delete s->pm;
-}
-
-void camera_rc_close(MultiCameraState* s) {
-    camera_close(&s->road_cam);
-    // camera_close(&s->driver_cam);
-    delete s->pm;
 }
 
 void process_driver_camera(MultiCameraState *s, CameraState *c, int cnt) {
@@ -227,16 +228,4 @@ void cameras_run(MultiCameraState *s) {
   for (auto &t : threads) t.join();
 
   cameras_close(s);
-}
-
-void camera_rc_run(MultiCameraState* s) {
-    std::thread t_process = start_process_thread(s, &s->road_cam, process_road_camera);
-
-    std::thread t_rear = std::thread(road_camera_thread, &s->road_cam);
-    util::set_thread_name("webcam_thread");
-
-    t_rear.join();
-    t_process.join();
-
-    camera_rc_close(s);
 }

@@ -148,10 +148,4 @@ void cameras_close(MultiCameraState *s);
 void camera_autoexposure(CameraState *s, float grey_frac);
 void camerad_thread();
 
-// void camera_rc_init(VisionIpcServer* v, MultiCameraState* s, cl_device_id device_id, cl_context ctx);
-void camera_rc_init(VisionIpcServer* v, MultiCameraState* s);
-void camera_rc_open(MultiCameraState* s);
-void camera_rc_run(MultiCameraState* s);
-void camera_rc_close(MultiCameraState* s);
-
 int open_v4l_by_name_and_index(const char name[], int index = 0, int flags = O_RDWR | O_NONBLOCK);
