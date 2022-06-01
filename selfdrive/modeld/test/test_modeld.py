@@ -20,7 +20,7 @@ IMG_BYTES = IMG.flatten().tobytes()
 class TestModeld(unittest.TestCase):
 
   def setUp(self):
-    print('start setUp')
+    # print('start setUp')
     self.vipc_server = VisionIpcServer("camerad")
     self.vipc_server.create_buffers(VisionStreamType.VISION_STREAM_ROAD, 40, False, *tici_f_frame_size)
     self.vipc_server.create_buffers(VisionStreamType.VISION_STREAM_DRIVER, 40, False, *tici_f_frame_size)

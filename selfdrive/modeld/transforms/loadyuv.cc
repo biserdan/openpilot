@@ -6,7 +6,7 @@
 #include <cstring>
 
 void loadyuv_init(LoadYUVState* s, int width, int height) {
-  fprintf(stdout, "loadyuv_init\n");
+  //fprintf(stdout, "loadyuv_init\n");
   memset(s, 0, sizeof(*s));
 
   s->width = width;
@@ -27,11 +27,11 @@ void loadyuv_init(LoadYUVState* s, int width, int height) {
   CL_CHECK(clReleaseProgram(prg));*/
 }
 
-void loadyuv_destroy(LoadYUVState* s) {
-  /*CL_CHECK(clReleaseKernel(s->loadys_krnl));
+/*void loadyuv_destroy(LoadYUVState* s) {
+  CL_CHECK(clReleaseKernel(s->loadys_krnl));
   CL_CHECK(clReleaseKernel(s->loaduv_krnl));
-  CL_CHECK(clReleaseKernel(s->copy_krnl));*/
-}
+  CL_CHECK(clReleaseKernel(s->copy_krnl));
+}*/
 // biserdan: openCL
 /*
 void loadyuv_queue(LoadYUVState* s, cl_command_queue q,
@@ -87,6 +87,7 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
                                &loaduv_work_size, NULL, 0, 0, NULL));*/
 
   start_loaduv(u_cuda_d,out_cuda,global_out_off,loaduv_work_size);
+  //printf("finish load yuv\n");
   /*
   global_out_off += (s->width/2)*(s->height/2);
 

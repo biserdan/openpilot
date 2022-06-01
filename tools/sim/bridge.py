@@ -12,7 +12,6 @@ import carla  # pylint: disable=import-error
 import numpy as np
 import ctypes
 
-# import numba as 
 import pyopencl as cl
 import pyopencl.array as cl_array
 

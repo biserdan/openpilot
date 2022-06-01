@@ -30,6 +30,13 @@ inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
 // ModelFrame::ModelFrame(cl_device_id device_id, cl_context context) {
 ModelFrame::ModelFrame() {
   input_frames = std::make_unique<float[]>(buf_size);
+  /*checkMsg(cudaMalloc((void **)&test_gpu,sizeof(float)));
+  checkMsg(cudaHostAlloc((void **)&test_cpu,sizeof(float),cudaHostAllocMapped));
+  test_cpu[0] = 2.5;
+  printf("test_cpu=%f\n",test_cpu[0]);
+  checkMsg(cudaMemcpy(test_gpu, test_cpu, sizeof(float), cudaMemcpyHostToDevice));
+  checkMsg(cudaMemcpy(test_cpu, test_gpu, sizeof(float), cudaMemcpyDeviceToHost));
+  printf("test_cpu=%f\n",test_cpu[0]);*/
 
   /*q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
   y_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_WIDTH * MODEL_HEIGHT, NULL, &err));
@@ -37,19 +44,20 @@ ModelFrame::ModelFrame() {
   v_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
   net_input_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_FRAME_SIZE * sizeof(float), NULL, &err));*/
 
-  /*checkMsg(cudaHostAlloc((void **)&y_cuda_h, MODEL_WIDTH * MODEL_HEIGHT, cudaHostAllocMapped));
+  checkMsg(cudaHostAlloc((void **)&y_cuda_h, MODEL_WIDTH * MODEL_HEIGHT, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&y_cuda_d, (void *)y_cuda_h, 0));
   checkMsg(cudaHostAlloc((void **)&u_cuda_h, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&u_cuda_d, (void *)u_cuda_h, 0));
   checkMsg(cudaHostAlloc((void **)&v_cuda_h, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&v_cuda_d, (void *)v_cuda_h, 0));
   checkMsg(cudaHostAlloc((void **)&net_input_cuda_h, MODEL_FRAME_SIZE * sizeof(float), cudaHostAllocMapped));
-  checkMsg(cudaHostGetDevicePointer((void **)&net_input_cuda_d, (void *)net_input_cuda_h, 0));*/
+  checkMsg(cudaHostGetDevicePointer((void **)&net_input_cuda_d, (void *)net_input_cuda_h, 0));
 
-  checkMsg(cudaMalloc((void **)&y_cuda_d,MODEL_WIDTH * MODEL_HEIGHT));
+  /*checkMsg(cudaMalloc((void **)&y_cuda_d,MODEL_WIDTH * MODEL_HEIGHT));
   checkMsg(cudaMalloc((void **)&u_cuda_d,(MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2)));
   checkMsg(cudaMalloc((void **)&v_cuda_d,(MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2)));
-  checkMsg(cudaMalloc((void **)&net_input_cuda_d,MODEL_FRAME_SIZE * sizeof(float)));
+  checkMsg(cudaMalloc((void **)&net_input_cuda_d,MODEL_FRAME_SIZE * sizeof(float)));*/
+  //printf("created: net_input_cuda_d\n");
 
   // transform_init(&transform, context, device_id);
   transform_init(&transform);
@@ -72,11 +80,22 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
     loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d);
 
     std::memmove(&input_frames[0], &input_frames[MODEL_FRAME_SIZE], sizeof(float) * MODEL_FRAME_SIZE);
-    // CL_CHECK(clEnqueueReadBuffer(q, net_input_cl, CL_TRUE, 0, MODEL_FRAME_SIZE * sizeof(float), &input_frames[MODEL_FRAME_SIZE], 0, nullptr, nullptr));
+    //CL_CHECK(clEnqueueReadBuffer(q, net_input_cl, CL_TRUE, 0, MODEL_FRAME_SIZE * sizeof(float), &input_frames[MODEL_FRAME_SIZE], 0, nullptr, nullptr));
     // clFinish(q);
     // from host to device
-    checkMsg(cudaMemcpy((void *)net_input_cuda_d,(void *)&input_frames[MODEL_FRAME_SIZE],MODEL_FRAME_SIZE * sizeof(float),cudaMemcpyHostToDevice));
-
+    //printf("pointers: %p, %p\n",net_input_cuda_d,&input_frames[MODEL_FRAME_SIZE]);
+    /*for(int i=0;i<101;i++) {
+      printf("input_frame[0]: %f\n",input_frames[MODEL_FRAME_SIZE+i]);
+      printf("input_frame[1]: %f\n",input_frames[0]);
+    }*/
+    //printf("buf_size: %d MODEL_FRAME_SIZE: %d\n",buf_size,MODEL_FRAME_SIZE);
+    //buf_size: 393216 MODEL_FRAME_SIZE: 196608
+    cudaDeviceSynchronize();
+    std::memmove(&input_frames[MODEL_FRAME_SIZE], net_input_cuda_h, MODEL_FRAME_SIZE * sizeof(float));
+    //checkMsg(cudaMemcpy((void *)&input_frames[MODEL_FRAME_SIZE],(void *)net_input_cuda_d,MODEL_FRAME_SIZE * sizeof(float), cudaMemcpyDeviceToHost));
+    //checkMsg(cudaMemcpy(&test[MODEL_FRAME_SIZE],&net_input_cuda_h[0],MODEL_FRAME_SIZE * sizeof(float), cudaMemcpyHostToHost));
+    //cudaMemcpy((void *)&test_gpu[0],(void *)&test_cpu[0],sizeof(float), cudaMemcpyHostToDevice);
+    //printf("net_input_cuda_h: %f\n",test_gpu[0]);
     return &input_frames[0];
   } else {
     loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d, true);
@@ -89,7 +108,7 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
 
 ModelFrame::~ModelFrame() {
   transform_destroy(&transform);
-  loadyuv_destroy(&loadyuv);
+  //loadyuv_destroy(&loadyuv);
   /*CL_CHECK(clReleaseMemObject(net_input_cl));
   CL_CHECK(clReleaseMemObject(v_cl));
   CL_CHECK(clReleaseMemObject(u_cl));
@@ -101,10 +120,10 @@ ModelFrame::~ModelFrame() {
   checkMsg(cudaFreeHost((void *)u_cuda_h));
   checkMsg(cudaFreeHost((void *)y_cuda_h));*/
 
-  checkMsg(cudaFree((void *)net_input_cuda_d));
-  checkMsg(cudaFree((void *)v_cuda_d));
-  checkMsg(cudaFree((void *)u_cuda_d));
-  checkMsg(cudaFree((void *)y_cuda_d));
+  checkMsg(cudaFreeHost((void *)net_input_cuda_h));
+  cudaFreeHost((void *)y_cuda_h);
+  cudaFreeHost((void *)u_cuda_h);
+  cudaFreeHost((void *)v_cuda_h);
 }
 
 void softmax(const float* input, float* output, size_t len) {

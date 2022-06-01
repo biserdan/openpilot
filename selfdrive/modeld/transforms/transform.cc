@@ -38,8 +38,16 @@ void transform_init(Transform* s) {
 
   checkMsg(cudaHostAlloc((void **)&s->m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&s->m_y_cuda_d, (void *)s->m_y_cuda_h, 0));
-  checkMsg(cudaHostAlloc((void **)&s->m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaMallocHost((void **)&s->m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&s->m_uv_cuda_d, (void *)s->m_uv_cuda_h, 0));
+
+
+  /*Mapping host memory on device
+  cudaHostAlloc(void** pHost, size_t size, unsigned int flags)
+  cudaHostRegister(void* ptr, size_t size, unsigned int flags)
+  cudaHostGetDevicePointer(void** pDevice, void* pHost, unsigned int flags)
+  cudaHostUnregister(void* ptr)
+  cudaFreeHost(void* ptr)*/
 }
 
 void transform_destroy(Transform* s) {
@@ -47,8 +55,8 @@ void transform_destroy(Transform* s) {
   CL_CHECK(clReleaseMemObject(s->m_uv_cl));
   CL_CHECK(clReleaseKernel(s->krnl));*/
 
-  checkMsg(cudaFreeHost((void *)s->m_y_cuda_h));
-  checkMsg(cudaFreeHost((void *)s->m_uv_cuda_h));
+  cudaFreeHost((void *)s->m_y_cuda_h);
+  cudaFreeHost((void *)s->m_uv_cuda_h);
 }
 
 /*void transform_queue(Transform* s,
@@ -75,12 +83,13 @@ void transform_queue(Transform* s,
 
   // from host to device
 
-  // CL_CHECK(clEnqueueWriteBuffer(q, s->m_y_cl, CL_TRUE, 0, 3*3*sizeof(float), (void*)projection_y.v, 0, NULL, NULL));
+  //CL_CHECK(clEnqueueWriteBuffer(q, s->m_y_cl, CL_TRUE, 0, 3*3*sizeof(float), (void*)projection_y.v, 0, NULL, NULL));
   // CL_CHECK(clEnqueueWriteBuffer(q, s->m_uv_cl, CL_TRUE, 0, 3*3*sizeof(float), (void*)projection_uv.v, 0, NULL, NULL));
 
-  checkMsg(cudaMemcpy((void *)s->m_y_cuda_d,(void*)projection_y.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
-  checkMsg(cudaMemcpy((void *)s->m_uv_cuda_d,(void*)projection_uv.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
-
+  //checkMsg(cudaMemcpy((void *)s->m_y_cuda_d,(void*)projection_y.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
+  s->m_y_cuda_h=projection_y.v;
+  //checkMsg(cudaMemcpy((void *)s->m_uv_cuda_d,(void*)projection_uv.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
+  s->m_uv_cuda_h=projection_uv.v;
   // printf("in_width: %d\nin_y_height: %d\nout_width: %d\nout_eight: %d\n", in_width, in_height, out_width, out_height);
   const int in_y_width = in_width;
   const int in_y_height = in_height;

@@ -170,7 +170,8 @@ void start_loadys(uint8_t *y_cuda_d, float_t *out_cuda,
    int UV_SIZE = ((TRANSFORMED_WIDTH/2)*(TRANSFORMED_HEIGHT/2));
    dim3 gridShape = dim3 (loadys_work_size);  
    //dim3 gridShape = dim3 (10);
-   loadys<<< gridShape, 1>>>(y_cuda_d,out_cuda,global_out_off,TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
+   //loadys<<< gridShape, 1>>>(y_cuda_d,out_cuda,global_out_off,TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
+   loadys<<< 1, gridShape>>>(y_cuda_d,out_cuda,global_out_off,TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
    sleep(1);   // Necessary to give time to let GPU threads run !!!
 }
 
@@ -178,7 +179,7 @@ void start_loaduv(uint8_t *u_cuda_d, float_t *out_cuda,
     int global_out_off, const int loaduv_work_size)
 {
   dim3 gridShape = dim3 (loaduv_work_size); 
-   loaduv<<< gridShape, 1>>>(u_cuda_d,out_cuda,global_out_off);
+   loaduv<<< 1, gridShape>>>(u_cuda_d,out_cuda,global_out_off);
    sleep(1);   // Necessary to give time to let GPU threads run !!!
 }
 
@@ -186,6 +187,6 @@ void start_copy(float_t *inout,
     int in_offset, const int copy_work_size)
 {
   dim3 gridShape = dim3 (copy_work_size); 
-  copy<<< gridShape, 1>>>(inout,in_offset);
+  copy<<< 1, gridShape>>>(inout,in_offset);
   sleep(1);   // Necessary to give time to let GPU threads run !!!
 }

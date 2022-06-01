@@ -46,11 +46,14 @@ private:
   // cl_command_queue q;
   // cl_mem y_cl, u_cl, v_cl, net_input_cl;
   
-  // uint8_t *y_cuda_h,*u_cuda_h,*v_cuda_h;
+  uint8_t *y_cuda_h,*u_cuda_h,*v_cuda_h;
   uint8_t *y_cuda_d,*u_cuda_d,*v_cuda_d;
 
-  // float_t *net_input_cuda_h;
+  float_t *net_input_cuda_h;
   float_t *net_input_cuda_d;
+
+  //float *test_cpu;
+  //float *test_gpu;
 
   std::unique_ptr<float[]> input_frames;
 };
