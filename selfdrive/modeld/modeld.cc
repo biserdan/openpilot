@@ -165,7 +165,7 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
 }
 
 int main(int argc, char **argv) {
-  //test_transform();
+  test_transform();
   test_loadyuv();
   /*if (Hardware::TICI()) {
     int ret;

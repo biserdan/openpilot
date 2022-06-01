@@ -104,13 +104,13 @@ void test_loadyuv() {
     fprintf(output_loadys_f,"Output ys: \n");
     //for(int i=0; i<196608; i++) {
     for(int i=0; i<100; i++) {
-        /*if(i%100==0) {
+        if(i%100==0) {
             fprintf(output_loadys_f,"%f ,",output[i]);
             if(i%1000==0) {
                 fprintf(output_loadys_f,"\n");
             }
-        }*/
-        fprintf(output_loadys_f,"%f\n",output[i]);
+        }
+        //fprintf(output_loadys_f,"%f\n",output[i]);
     }
     fclose(output_loadys_f);
 
@@ -172,6 +172,8 @@ void test_loadyuv() {
     CL_CHECK(clEnqueueNDRangeKernel(queue, copy_krnl, 1, NULL, &copy_work_size, NULL, 0, 0, NULL));
 
     CL_CHECK(clEnqueueReadBuffer(queue, io_buffer, CL_TRUE, 0, 196608 * sizeof(float), (void *)output, 0, NULL, NULL));
+
+    CL_CHECK(clReleaseCommandQueue(queue));
     
     FILE *output_copy_f = fopen ("test_yuvcopy.txt","w");
     fprintf(output_copy_f,"Output copy: \n");
@@ -185,9 +187,7 @@ void test_loadyuv() {
     }
     fclose(output_copy_f);
     
-    CL_CHECK(clReleaseCommandQueue(queue));
-
-    
+        
     free(output);
     free(inputy);
     free(inputu);
