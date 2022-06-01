@@ -35,7 +35,7 @@ inline void __checkMsgNoFail(cudaError_t code,
 }
 
 void test_transform() {
-
+  printf("test_transform\n");
   // uint8_t *input = static_cast<uint8_t*>(malloc(1928*1208*3/2));
   uint8_t * input = 0;
   checkMsg(cudaHostAlloc((void ** ) & input, 1928 * 1208 * 3 / 2, cudaHostAllocMapped));
@@ -48,10 +48,10 @@ void test_transform() {
   uint8_t *output_v = 0; 
   checkMsg(cudaHostAlloc((void**)&output_v, 32768, cudaHostAllocMapped));*/
 
-  float_t * projection_y_cpu = 0;
+  /*float_t * projection_y_cpu = 0;
   checkMsg(cudaHostAlloc((void ** ) & projection_y_cpu, 3 * 3 * sizeof(float_t), cudaHostAllocMapped));
   float_t * projection_uv_cpu = 0;
-  checkMsg(cudaHostAlloc((void ** ) & projection_uv_cpu, 3 * 3 * sizeof(float_t), cudaHostAllocMapped));
+  checkMsg(cudaHostAlloc((void ** ) & projection_uv_cpu, 3 * 3 * sizeof(float_t), cudaHostAllocMapped));*/
 
   FILE * inputf = fopen("test_input.txt", "w");
   fprintf(inputf, "Input: \n");
@@ -78,11 +78,11 @@ void test_transform() {
   uint8_t * out_u_d;
   uint8_t * out_v_h;
   uint8_t * out_v_d;
-  //float_t *m_y_cuda_h;
+  float_t *m_y_cuda_h;
   float_t * m_y_cuda_d;
-  //float_t *m_uv_cuda_h,
+  float_t *m_uv_cuda_h;
   float_t * m_uv_cuda_d;
-
+  printf("cuda malloc\n");
   checkMsg(cudaHostAlloc((void ** ) & in_yuv_test_h, 1928 * 1208 * 3 / 2, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void ** ) & in_yuv_test_d, (void * ) in_yuv_test_h, 0));
   //checkMsg(cudaMalloc((void**)&in_yuv_test_d, 1928*1208*3/2 * sizeof(uint8_t)));
@@ -95,31 +95,31 @@ void test_transform() {
   checkMsg(cudaHostAlloc((void ** ) & out_v_h, 32768, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void ** ) & out_v_d, (void * ) out_v_h, 0));
 
-  /*checkMsg(cudaHostAlloc((void **)&m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
-  checkMsg(cudaHostGetDevicePointer((void **)&m_y_cuda_d, (void *)m_y_cuda_h, 0));*/
-  checkMsg(cudaMalloc((void ** ) & m_y_cuda_d, 3 * 3 * sizeof(float_t)));
+  checkMsg(cudaHostAlloc((void **)&m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&m_y_cuda_d, (void *)m_y_cuda_h, 0));
+  //checkMsg(cudaMalloc((void ** ) & m_y_cuda_d, 3 * 3 * sizeof(float_t)));
 
-  /*checkMsg(cudaHostAlloc((void **)&m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
-  checkMsg(cudaHostGetDevicePointer((void **)&m_uv_cuda_d, (void *)m_uv_cuda_h, 0));*/
-  checkMsg(cudaMalloc((void ** ) & m_uv_cuda_d, 3 * 3 * sizeof(float_t)));
+  checkMsg(cudaHostAlloc((void **)&m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void **)&m_uv_cuda_d, (void *)m_uv_cuda_h, 0));
+  //checkMsg(cudaMalloc((void ** ) & m_uv_cuda_d, 3 * 3 * sizeof(float_t)));
 
   const int zero = 0;
 
   //mat3 projection_y, projection_uv;
-
+  printf("projection\n");
   for (int i = 0; i < 10; i++) {
-    projection_y_cpu[i] = 1;
-    projection_uv_cpu[i] = 0.5;
+    m_y_cuda_h[i] = 1.0;
+    m_uv_cuda_h[i] = 0.5;
   }
   /*for(int i=0; i<10; i++) {
       printf("projection_y: %d\t%f\n",i,*(projection_y_cpu+i));
       printf("projection_uv: %d\t%f\n",i,*(projection_uv_cpu+i));
   }*/
-
+  printf("cudaMemcpy\n");
   checkMsg(cudaMemcpy((void * ) in_yuv_test_d, (void * ) input, 1928 * 1208 * 3 / 2, cudaMemcpyHostToDevice));
   // checkMsg(cudaMemcpy((void *)data,(void*)in_yuv_test_d,1928*1208*3/2,cudaMemcpyDeviceToHost));
-  checkMsg(cudaMemcpy((void * ) m_y_cuda_d, (void * ) projection_y_cpu, 3 * 3 * sizeof(float), cudaMemcpyHostToDevice));
-  checkMsg(cudaMemcpy((void * ) m_uv_cuda_d, (void * ) projection_uv_cpu, 3 * 3 * sizeof(float), cudaMemcpyHostToDevice));
+  //checkMsg(cudaMemcpy((void * ) m_y_cuda_d, (void * ) projection_y_cpu, 3 * 3 * sizeof(float), cudaMemcpyHostToDevice));
+  //checkMsg(cudaMemcpy((void * ) m_uv_cuda_d, (void * ) projection_uv_cpu, 3 * 3 * sizeof(float), cudaMemcpyHostToDevice));
 
   FILE * dataf = fopen("test_data.txt", "w");
   fprintf(dataf, "Data: \n");
@@ -224,15 +224,17 @@ printf("finish u\n");
   }
   fclose(outputfv);
 
+  //cudaDeviceSynchronize();
+
   //checkMsg(cudaFreeHost((void *)m_y_cuda_h));
-  checkMsg(cudaFree((void * ) m_y_cuda_d));
-  //checkMsg(cudaFreeHost((void *)m_uv_cuda_h));
-  checkMsg(cudaFree((void * ) m_uv_cuda_d));
+  checkMsg(cudaFreeHost((void * ) m_y_cuda_h));
+  checkMsg(cudaFreeHost((void *)m_uv_cuda_h));
+  //checkMsg(cudaFree((void * ) m_uv_cuda_d));
   checkMsg(cudaFreeHost((void * ) input));
   //checkMsg(cudaFreeHost((void *)data));
   checkMsg(cudaFreeHost((void * ) in_yuv_test_h));
-  checkMsg(cudaFreeHost((void * ) projection_uv_cpu));
-  checkMsg(cudaFreeHost((void * ) projection_y_cpu));
+  //checkMsgNoFail(cudaFreeHost((void * ) projection_uv_cpu));
+  //checkMsgNoFail(cudaFreeHost((void * ) projection_y_cpu));
   //checkMsg(cudaFree((void *)in_yuv_test_d));
   //checkMsg(cudaFree((void *)out_y_d));
   checkMsg(cudaFreeHost((void * ) out_y_h));

@@ -50,7 +50,7 @@ void test_loadyuv() {
     checkMsg(cudaHostAlloc((void ** ) &u_cuda_h, 32768, cudaHostAllocMapped));
     checkMsg(cudaHostGetDevicePointer((void ** ) & u_cuda_d, (void * ) u_cuda_h, 0));
     float *io_buffer_h,*io_buffer_d;
-    checkMsg(cudaHostAlloc((void ** ) &io_buffer_h, 32768, cudaHostAllocMapped));
+    checkMsg(cudaHostAlloc((void ** ) &io_buffer_h, 196608*sizeof(float), cudaHostAllocMapped));
     checkMsg(cudaHostGetDevicePointer((void ** ) & io_buffer_d, (void * ) io_buffer_h, 0));
 
     FILE *inputfy = fopen ("test_yuvinput_y.txt","w");
@@ -157,7 +157,7 @@ void test_loadyuv() {
 
     global_out_off = 196608;
     
-    int copy_work_size = global_out_off;
+    int copy_work_size = global_out_off/8;
     
     start_copy(io_buffer_d,global_out_off,copy_work_size);
     

@@ -152,14 +152,16 @@ __global__ void copy(float * inout,
 {
   const int gid = blockIdx.x * blockDim.x + threadIdx.x;
   if(gid%8==0) {
-  inout[gid + 0] = inout[gid + 0 + in_offset];
-  inout[gid + 1] = inout[gid + 1 + in_offset];
-  inout[gid + 2] = inout[gid + 2 + in_offset];
-  inout[gid + 3] = inout[gid + 3 + in_offset];
-  inout[gid + 4] = inout[gid + 4 + in_offset];
-  inout[gid + 5] = inout[gid + 5 + in_offset];
-  inout[gid + 6] = inout[gid + 6 + in_offset];
-  inout[gid + 7] = inout[gid + 7 + in_offset];
+  printf("inout = %f [gid + 0] = %d inout[gid + 0 + in_offset / 8] = %f [gid + 0 + in_offset / 8] = %d\n" \
+    ,inout[gid + 0],gid,inout[gid + 0 + in_offset / 8],gid + 0 + in_offset / 8);
+  inout[gid + 0] = inout[gid + 0 + in_offset / 8];
+  inout[gid + 1] = inout[gid + 1 + in_offset / 8];
+  inout[gid + 2] = inout[gid + 2 + in_offset / 8];
+  inout[gid + 3] = inout[gid + 3 + in_offset / 8];
+  inout[gid + 4] = inout[gid + 4 + in_offset / 8];
+  inout[gid + 5] = inout[gid + 5 + in_offset / 8];
+  inout[gid + 6] = inout[gid + 6 + in_offset / 8];
+  inout[gid + 7] = inout[gid + 7 + in_offset / 8];
 }
 }
 
@@ -171,7 +173,7 @@ void start_loadys(uint8_t *y_cuda_d, float_t *out_cuda,
    dim3 gridShape = dim3 (loadys_work_size);  
    //dim3 gridShape = dim3 (10);
    //loadys<<< gridShape, 1>>>(y_cuda_d,out_cuda,global_out_off,TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
-   loadys<<< 1, gridShape>>>(y_cuda_d,out_cuda,global_out_off,TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
+   loadys<<< gridShape,1 >>>(y_cuda_d,out_cuda,global_out_off,TRANSFORMED_WIDTH,TRANSFORMED_HEIGHT,UV_SIZE);
    sleep(1);   // Necessary to give time to let GPU threads run !!!
 }
 
@@ -179,7 +181,7 @@ void start_loaduv(uint8_t *u_cuda_d, float_t *out_cuda,
     int global_out_off, const int loaduv_work_size)
 {
   dim3 gridShape = dim3 (loaduv_work_size); 
-   loaduv<<< 1, gridShape>>>(u_cuda_d,out_cuda,global_out_off);
+   loaduv<<< gridShape,1 >>>(u_cuda_d,out_cuda,global_out_off);
    sleep(1);   // Necessary to give time to let GPU threads run !!!
 }
 
@@ -187,6 +189,6 @@ void start_copy(float_t *inout,
     int in_offset, const int copy_work_size)
 {
   dim3 gridShape = dim3 (copy_work_size); 
-  copy<<< 1, gridShape>>>(inout,in_offset);
+  copy<<< gridShape,1 >>>(inout,in_offset);
   sleep(1);   // Necessary to give time to let GPU threads run !!!
 }

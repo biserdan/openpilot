@@ -88,13 +88,14 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
 
   start_loaduv(u_cuda_d,out_cuda,global_out_off,loaduv_work_size);
   //printf("finish load yuv\n");
-  /*
+  
   global_out_off += (s->width/2)*(s->height/2);
 
-  CL_CHECK(clSetKernelArg(s->loaduv_krnl, 0, sizeof(cl_mem), &v_cl));
+  /*CL_CHECK(clSetKernelArg(s->loaduv_krnl, 0, sizeof(cl_mem), &v_cl));
   CL_CHECK(clSetKernelArg(s->loaduv_krnl, 1, sizeof(cl_mem), &out_cl));
   CL_CHECK(clSetKernelArg(s->loaduv_krnl, 2, sizeof(cl_int), &global_out_off));
 
   CL_CHECK(clEnqueueNDRangeKernel(q, s->loaduv_krnl, 1, NULL,
                                &loaduv_work_size, NULL, 0, 0, NULL));*/
+  start_loaduv(y_cuda_d,out_cuda,global_out_off,loaduv_work_size);
 }

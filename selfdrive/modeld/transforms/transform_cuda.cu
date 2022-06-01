@@ -119,7 +119,7 @@ void start_warpPerspective(uint8_t *y_cuda_d, int src_step, int src_offset,
   dim3 gridShape = dim3 (work_size_y[0],work_size_y[1]);  
   //dim3 gridShape = dim3 (2,2);  
   //warpPerspective<<< gridShape, 1>>>(y_cuda_d,src_step,src_offset,src_rows,
-  warpPerspective<<< 1, gridShape>>>(y_cuda_d,src_step,src_offset,src_rows,
+  warpPerspective<<< gridShape, 1 >>>(y_cuda_d,src_step,src_offset,src_rows,
       src_cols,dst,dst_step,dst_offset,dst_rows,dst_cols,M);
 
    sleep(1);   // Necessary to give time to let GPU threads run !!!

@@ -166,9 +166,9 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
 }
 
 int main(int argc, char **argv) {
-  //test_transform();
-  //test_loadyuv();
-  if (Hardware::TICI()) {
+  test_transform();
+  test_loadyuv();
+  /*if (Hardware::TICI()) {
     int ret;
     ret = util::set_realtime_priority(54);
     assert(ret == 0);
@@ -222,6 +222,6 @@ int main(int argc, char **argv) {
     run_model(model, vipc_client_main, vipc_client_extra, main_wide_camera, use_extra_client);
   }
 
-  model_free(&model);
+  model_free(&model);*/
   return 0;
 }
