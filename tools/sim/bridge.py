@@ -121,7 +121,8 @@ class Camerad:
     eof = int(frame_id * 0.05 * 1e9)
 
     # TODO: remove RGB send once the last RGB vipc subscriber is removed
-    self.vipc_server.send(rgb_type, img.tobytes(), frame_id, eof, eof)
+    # self.vipc_server.send(rgb_type, img.tobytes(), frame_id, eof, eof)
+
     self.vipc_server.send(yuv_type, yuv.data.tobytes(), frame_id, eof, eof)
 
     dat = messaging.new_message(pub_type)

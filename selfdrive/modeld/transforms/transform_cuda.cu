@@ -29,13 +29,18 @@ __global__ void warpPerspective(const uint8_t * src,
   int dy = blockIdx.y * blockDim.y + threadIdx.y;
 
   //printf("dx= %d dy= %d\n",dx,dy);
+  /*if(dx==0 && dy==0) {
+      printf("CUDA0: %f CUDA1: %f CUDA2: %f\n",M[0],M[1],M[2]);
+  }*/
+  
 
   if (dx < dst_cols && dy < dst_rows)
     {   
 
-        //printf("M0: %f M1: %f M2: %f\n",M[0],M[1],M[2]);
-        //printf("M3: %f M4: %f M5: %f\n",M[3],M[4],M[5]);
-        //printf("M6: %f M7: %f M8: %f\n",M[6],M[7],M[8]);
+        /*printf("M0: %f M1: %f M2: %f\n",M[0],M[1],M[2]);
+        printf("M3: %f M4: %f M5: %f\n",M[3],M[4],M[5]);
+        printf("M6: %f M7: %f M8: %f\n",M[6],M[7],M[8]);*/
+        
         
         float X0 = M[0] * dx + M[1] * dy + M[2];
         float Y0 = M[3] * dx + M[4] * dy + M[5];
@@ -145,6 +150,7 @@ void start_warpPerspective(uint8_t *y_cuda_d, int src_step, int src_offset,
   dim3 gridShape = dim3 (work_size_y[0],work_size_y[1]);  
   //dim3 gridShape = dim3 (2,2);  
   //warpPerspective<<< gridShape, 1>>>(y_cuda_d,src_step,src_offset,src_rows,
+  //printf("CUDA0: %f CUDA1: %f CUDA2: %f\n",M[0],M[1],M[2]);
   warpPerspective<<< gridShape, 1 >>>(y_cuda_d,src_step,src_offset,src_rows,
       src_cols,dst,dst_step,dst_offset,dst_rows,dst_cols,M);
   cudaDeviceSynchronize();

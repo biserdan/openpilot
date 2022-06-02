@@ -22,8 +22,10 @@
 typedef struct {
   cl_kernel krnl;
   cl_mem m_y_cl, m_uv_cl;
-  float_t *m_y_cuda_h, *m_y_cuda_d;
-  float_t *m_uv_cuda_h, *m_uv_cuda_d;
+  //float_t *m_y_cuda_h;
+  float_t *m_y_cuda_d;
+  //float_t *m_uv_cuda_h;
+  float_t *m_uv_cuda_d;
 } Transform;
 
 // void transform_init(Transform* s, cl_context ctx, cl_device_id device_id);

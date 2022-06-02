@@ -77,7 +77,7 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
   transform_queue(&this->transform,
                   yuv_cl, frame_width, frame_height,
                   y_cuda_d, u_cuda_d, v_cuda_d, MODEL_WIDTH, MODEL_HEIGHT, projection);
-
+  cudaDeviceSynchronize();
   /*uint8_t *test_ptr = y_cuda_h;
   for(int i=0; i<10; i++) {
     printf("y_cuda_d %d",test_ptr[i + 32768]);
@@ -90,7 +90,17 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
     // loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, net_input_cl);
     // biserdan: CUDA
     loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d);
-
+    cudaDeviceSynchronize();
+    /*printf("y_cuda: ");
+    for(int i=0;i<10;i++) {
+        printf("%d ",y_cuda_h[i*10000]);
+    }
+    printf("\n");
+    printf("net_input: ");
+    for(int i=0;i<10;i++) {
+        printf("%.1f ",net_input_cuda_h[i*20000]);
+    }
+    printf("\n");*/
     std::memmove(&input_frames[0], &input_frames[MODEL_FRAME_SIZE], sizeof(float) * MODEL_FRAME_SIZE);
     //CL_CHECK(clEnqueueReadBuffer(q, net_input_cl, CL_TRUE, 0, MODEL_FRAME_SIZE * sizeof(float), &input_frames[MODEL_FRAME_SIZE], 0, nullptr, nullptr));
     // clFinish(q);

@@ -98,7 +98,7 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
 
   CL_CHECK(clEnqueueNDRangeKernel(q, s->loaduv_krnl, 1, NULL,
                                &loaduv_work_size, NULL, 0, 0, NULL));*/
-  // start_loaduv(v_cuda_d,out_cuda,global_out_off,loaduv_work_size);
+  start_loaduv(v_cuda_d,out_cuda,global_out_off,loaduv_work_size);
 
   // static int test = 0;
   // char buf[100];

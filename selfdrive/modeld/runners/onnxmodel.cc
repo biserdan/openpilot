@@ -108,10 +108,12 @@ void ONNXModel::addCalib(float *state, int state_size) {
 void ONNXModel::addImage(float *image_buf, int buf_size) {
   image_input_buf = image_buf;
   image_buf_size = buf_size;
-  static int test = 0;
-  if(test == 0) {
-    printf("test run\n");
-    FILE *output_addf = fopen ("test_addImage.txt","w");
+  /*static int test = 0;
+  if(test % 20 == 0) {
+    //printf("test run\n");
+    char buf[100];
+    snprintf(buf, sizeof(buf), "test_addImage_%d.txt",test);
+    FILE *output_addf = fopen (buf,"w");
     for(int i=0; i<buf_size; i++) {
         if(i%100==0) {
             fprintf(output_addf,"%f ,",image_buf[i]);
@@ -122,8 +124,8 @@ void ONNXModel::addImage(float *image_buf, int buf_size) {
         //fprintf(output_loadys_f,"%f\n",io_buffer_h[i]);
     }
     fclose(output_addf);
-    test += 1;
   }
+  test += 1;*/
 }
 
 void ONNXModel::addExtra(float *image_buf, int buf_size) {

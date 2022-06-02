@@ -36,11 +36,17 @@ void transform_init(Transform* s) {
   s->m_y_cl = CL_CHECK_ERR(clCreateBuffer(ctx, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));
   s->m_uv_cl = CL_CHECK_ERR(clCreateBuffer(ctx, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));*/
 
-  checkMsg(cudaHostAlloc((void **)&s->m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
-  checkMsg(cudaHostGetDevicePointer((void **)&s->m_y_cuda_d, (void *)s->m_y_cuda_h, 0));
-  checkMsg(cudaMallocHost((void **)&s->m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
-  checkMsg(cudaHostGetDevicePointer((void **)&s->m_uv_cuda_d, (void *)s->m_uv_cuda_h, 0));
+  //checkMsg(cudaHostAlloc((void **)&s->m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
+  //checkMsg(cudaHostAlloc((void **)&s->m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocWriteCombined));
+  //checkMsg(cudaHostGetDevicePointer((void **)&s->m_y_cuda_d, (void *)s->m_y_cuda_h, 0));
 
+  checkMsg(cudaMalloc((void **)&s->m_y_cuda_d,3*3*sizeof(float)));
+
+  /*checkMsg(cudaMallocHost((void **)&s->m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
+  //checkMsg(cudaHostAlloc((void **)&s->m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocWriteCombined));
+  checkMsg(cudaHostGetDevicePointer((void **)&s->m_uv_cuda_d, (void *)s->m_uv_cuda_h, 0));*/
+
+  checkMsg(cudaMalloc((void **)&s->m_uv_cuda_d,3*3*sizeof(float)));
 
   /*Mapping host memory on device
   cudaHostAlloc(void** pHost, size_t size, unsigned int flags)
@@ -54,9 +60,10 @@ void transform_destroy(Transform* s) {
   /*CL_CHECK(clReleaseMemObject(s->m_y_cl));
   CL_CHECK(clReleaseMemObject(s->m_uv_cl));
   CL_CHECK(clReleaseKernel(s->krnl));*/
-
-  cudaFreeHost((void *)s->m_y_cuda_h);
-  cudaFreeHost((void *)s->m_uv_cuda_h);
+  cudaFree((void *)s->m_y_cuda_d);
+  cudaFree((void *)s->m_uv_cuda_d);
+  //cudaFreeHost((void *)s->m_y_cuda_h);
+  //cudaFreeHost((void *)s->m_uv_cuda_h);
 }
 
 /*void transform_queue(Transform* s,
@@ -83,13 +90,21 @@ void transform_queue(Transform* s,
 
   // from host to device
 
+  //printf("M0: %f M1: %f M2: %f\n",projection_y.v[0],projection_y.v[1],projection_y.v[2]);
+
   //CL_CHECK(clEnqueueWriteBuffer(q, s->m_y_cl, CL_TRUE, 0, 3*3*sizeof(float), (void*)projection_y.v, 0, NULL, NULL));
   // CL_CHECK(clEnqueueWriteBuffer(q, s->m_uv_cl, CL_TRUE, 0, 3*3*sizeof(float), (void*)projection_uv.v, 0, NULL, NULL));
 
-  //checkMsg(cudaMemcpy((void *)s->m_y_cuda_d,(void*)projection_y.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
-  s->m_y_cuda_h=projection_y.v;
+  checkMsg(cudaMemcpy((void *)s->m_y_cuda_d,(void*)projection_y.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
+  checkMsg(cudaMemcpy((void *)s->m_uv_cuda_d,(void*)projection_uv.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
+
+  //s->m_y_cuda_h=projection_y.v;
+  //s->m_uv_cuda_h=projection_uv.v;
+
+  //s->m_y_cuda_h[0] = 1.0;
+  //printf("CUDA0: %f CUDA1: %f CUDA2: %f\n",s->m_y_cuda_h[0],s->m_y_cuda_h[1],s->m_y_cuda_h[2]);
   //checkMsg(cudaMemcpy((void *)s->m_uv_cuda_d,(void*)projection_uv.v,3*3*sizeof(float),cudaMemcpyHostToDevice));
-  s->m_uv_cuda_h=projection_uv.v;
+  
   // printf("in_width: %d\nin_y_height: %d\nout_width: %d\nout_eight: %d\n", in_width, in_height, out_width, out_height);
   const int in_y_width = in_width;
   const int in_y_height = in_height;
@@ -135,6 +150,9 @@ void transform_queue(Transform* s,
   start_warpPerspective(in_yuv,in_y_width,in_y_offset,in_y_height,in_y_width,
       out_y,out_y_width,zero,out_y_height,out_y_width,s->m_y_cuda_d,
       (const size_t*)&work_size_y);
+  /*start_warpPerspective(in_yuv,in_y_width,in_y_offset,in_y_height,in_y_width,
+      out_y,out_y_width,zero,out_y_height,out_y_width,projection_y.v,
+      (const size_t*)&work_size_y);*/
   
   // printf("out_y uint64_t= %" PRIx64 "\n",*((uint64_t*)out_y));
   // printf("&s->m_y_cl uint64_t= %" PRIx64 "\n",*((uint64_t*)s->m_y_cl));
@@ -157,6 +175,9 @@ void transform_queue(Transform* s,
   start_warpPerspective(in_yuv,in_uv_width,in_u_offset,in_uv_height,in_uv_width,
       out_u,out_uv_width,zero,out_uv_height,out_uv_width,s->m_uv_cuda_d,
       (const size_t*)&work_size_uv);
+  /*start_warpPerspective(in_yuv,in_uv_width,in_u_offset,in_uv_height,in_uv_width,
+      out_u,out_uv_width,zero,out_uv_height,out_uv_width,projection_uv.v,
+      (const size_t*)&work_size_uv);*/
   
   // CL_CHECK(clSetKernelArg(s->krnl, 2, sizeof(cl_int), &in_v_offset));
   // CL_CHECK(clSetKernelArg(s->krnl, 5, sizeof(cl_mem), &out_v));
@@ -164,6 +185,9 @@ void transform_queue(Transform* s,
   start_warpPerspective(in_yuv,in_uv_width,in_v_offset,in_uv_height,in_uv_width,
       out_v,out_uv_width,zero,out_uv_height,out_uv_width,s->m_uv_cuda_d,
       (const size_t*)&work_size_uv);
+  /*start_warpPerspective(in_yuv,in_uv_width,in_v_offset,in_uv_height,in_uv_width,
+      out_v,out_uv_width,zero,out_uv_height,out_uv_width,projection_uv.v,
+      (const size_t*)&work_size_uv);*/
 
   // CL_CHECK(clEnqueueNDRangeKernel(q, s->krnl, 2, NULL,
   //                             (const size_t*)&work_size_uv, NULL, 0, 0, NULL));
