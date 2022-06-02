@@ -19,6 +19,7 @@ void test_loadyuv() {
     u_char *inputu = (u_char *)malloc(32768);
     u_char *inputv = (u_char *)malloc(32768);
     float *output = (float *)malloc(196608 * sizeof(float));
+    //memset (output,0,6,196608);
 
     const cl_queue_properties props[] = {0}; //CL_QUEUE_PRIORITY_KHR, CL_QUEUE_PRIORITY_HIGH_KHR, 0};
 
@@ -51,14 +52,12 @@ void test_loadyuv() {
 
     FILE *inputfy = fopen ("test_yuvinput_y.txt","w");
     
-    fprintf(inputfy,"Input: \n");
+    //fprintf(inputfy,"Input: \n");
     for(int i=0; i<131072; i++) {
-        inputy[i] = (i % 101);
-        if(i%100==0) {
-            fprintf(inputfy,"%d ,",inputy[i]);
-            if(i%1000==0) {
+        inputy[i] = rand() % 256;
+        fprintf(inputfy,"%d ",inputy[i]);
+        if(i%1000==0) {
                 fprintf(inputfy,"\n");
-            }
         }
     }
     fclose(inputfy);
@@ -67,20 +66,18 @@ void test_loadyuv() {
 
     FILE *inputfu = fopen ("test_yuvinput_u.txt","w");
     FILE *inputfv = fopen ("test_yuvinput_v.txt","w");
-    fprintf(inputfu,"Input: \n");
-    fprintf(inputfv,"Input: \n");
+    // fprintf(inputfu,"Input: \n");
+    // fprintf(inputfv,"Input: \n");
     for(int i=0; i<32768; i++) {
         //inputuv[i] = (i % 256);
-        inputu[i] = (i % 151)+100;
-        inputv[i] = (i % 201)+150;
-        if(i%100==0) {
-            fprintf(inputfu,"%d ,",inputu[i]);
-            fprintf(inputfv,"%d ," ,inputv[i]);
+        inputu[i] = rand() % 256;
+        inputv[i] = rand() % 256;
+            fprintf(inputfu,"%d ",inputu[i]);
+            fprintf(inputfv,"%d " ,inputv[i]);
             if(i%1000==0) {
                 fprintf(inputfu,"\n");
                 fprintf(inputfv,"\n");
             }
-        }
     }
     fclose(inputfu);
     fclose(inputfv);
@@ -102,8 +99,8 @@ void test_loadyuv() {
     
     FILE *output_loadys_f = fopen ("test_yuvloadys.txt","w");
     fprintf(output_loadys_f,"Output ys: \n");
-    //for(int i=0; i<196608; i++) {
-    for(int i=0; i<100; i++) {
+    for(int i=0; i<196608; i++) {
+    //for(int i=0; i<100; i++) {
         if(i%100==0) {
             fprintf(output_loadys_f,"%f ,",output[i]);
             if(i%1000==0) {
@@ -114,7 +111,7 @@ void test_loadyuv() {
     }
     fclose(output_loadys_f);
 
-    const size_t loaduv_work_size = 131072/8;
+    const size_t loaduv_work_size = ((512/2)*(256/2))/8;
     global_out_off += 131072;
 
     CL_CHECK(clSetKernelArg(loaduv_krnl, 0, sizeof(cl_mem), &u_cl));
@@ -172,8 +169,6 @@ void test_loadyuv() {
     CL_CHECK(clEnqueueNDRangeKernel(queue, copy_krnl, 1, NULL, &copy_work_size, NULL, 0, 0, NULL));
 
     CL_CHECK(clEnqueueReadBuffer(queue, io_buffer, CL_TRUE, 0, 196608 * sizeof(float), (void *)output, 0, NULL, NULL));
-
-    CL_CHECK(clReleaseCommandQueue(queue));
     
     FILE *output_copy_f = fopen ("test_yuvcopy.txt","w");
     fprintf(output_copy_f,"Output copy: \n");
@@ -187,7 +182,9 @@ void test_loadyuv() {
     }
     fclose(output_copy_f);
     
-        
+    
+
+    
     free(output);
     free(inputy);
     free(inputu);
