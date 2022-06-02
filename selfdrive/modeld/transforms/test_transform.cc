@@ -52,11 +52,11 @@ void test_transform() {
   checkMsg(cudaHostAlloc((void ** ) & projection_y_cpu, 3 * 3 * sizeof(float_t), cudaHostAllocMapped));
   float_t * projection_uv_cpu = 0;
   checkMsg(cudaHostAlloc((void ** ) & projection_uv_cpu, 3 * 3 * sizeof(float_t), cudaHostAllocMapped));*/
-
+  FILE * openclf = fopen("test_opencl.txt", "r");
   FILE * inputf = fopen("test_input.txt", "w");
-  fprintf(inputf, "Input: \n");
+  //fprintf(inputf, "Input: \n");
   //dataf << "Data: \n";
-  for (int i = 0; i < 1928 * 1208 * 3 / 2; i++) {
+  /*for (int i = 0; i < 1928 * 1208 * 3 / 2; i++) {
     //((u_char*)input+i) = 1;
     input[i] = (i % 256);
     if (i % 100 == 0) {
@@ -67,8 +67,31 @@ void test_transform() {
       }
     }
     //printf("Data: %d\n",input[i]);
-  }
+  }*/
+  int x = 0;
+  int y = 0;
+
+  fscanf (openclf, "%d", &x);    
+  input[y] = x;
+  fprintf(inputf, "%d ", input[y]);
+  fprintf(inputf,"\n");
+  while (!feof (openclf))
+    {  
+      if(y<1928 * 1208 * 3 / 2 -1){
+      y+=1;
+      fscanf (openclf, "%d", &x);      
+      input[y] = x;
+      fprintf(inputf, "%d ", input[y]);
+      if(y%1000==0) {
+          fprintf(inputf,"\n");
+        }
+      }
+      else {
+          break;
+      }
+    }
   fclose(inputf);
+  fclose(openclf);
 
   uint8_t * in_yuv_test_h;
   uint8_t * in_yuv_test_d;
@@ -108,8 +131,8 @@ void test_transform() {
   //mat3 projection_y, projection_uv;
   printf("projection\n");
   for (int i = 0; i < 10; i++) {
-    m_y_cuda_h[i] = 1.0;
-    m_uv_cuda_h[i] = 0.5;
+    m_y_cuda_h[i] = 1.0 + i;
+    m_uv_cuda_h[i] = 0.5 + i;
   }
   /*for(int i=0; i<10; i++) {
       printf("projection_y: %d\t%f\n",i,*(projection_y_cpu+i));
