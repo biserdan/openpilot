@@ -29,6 +29,15 @@ float* ModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_height, con
                   yuv_cl, frame_width, frame_height,
                   y_cl, u_cl, v_cl, MODEL_WIDTH, MODEL_HEIGHT, projection);
 
+  uint8_t* test = (uint8_t *)malloc(131072);
+  CL_CHECK(clEnqueueReadBuffer(q, y_cl, CL_TRUE, 0, 131072, test, 0, nullptr, nullptr));
+
+  for(int i=0; i<10; i++) {
+    printf("y_cuda_d %d",test[i+32768]);
+  }
+  printf("\n");
+  free(test);
+
   if (output == NULL) {
     loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, net_input_cl);
 

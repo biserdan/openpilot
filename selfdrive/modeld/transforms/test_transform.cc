@@ -56,7 +56,7 @@ void test_transform() {
     //dataf << "Data: \n";
     for(int i=0; i<1928*1208*3/2; i++) {
         //((u_char*)input+i) = 1;
-        input[i] = (i % 256);
+        input[i] = rand() % 256;
         if(i%100==0) {
             fprintf(inputf,"%d ,",input[i]);
             //dataf << input[i] << ", ";
@@ -80,8 +80,8 @@ void test_transform() {
     mat3 projection_y, projection_uv;
 
     for(int i=0; i<10; i++) {
-        projection_y.v[i] = 1;
-        projection_uv.v[i] = 0.5;
+        projection_y.v[i] = 1+i;
+        projection_uv.v[i] = 0.5+i;
     }
     
 
@@ -112,17 +112,20 @@ void test_transform() {
     printf("Process test_input\n");
 
     FILE *dataf = fopen ("test_data.txt","w");
-    fprintf(dataf,"Data: \n");
     //dataf << "Data: \n";
     for(int i=0; i<1928*1208*3/2; i++) {;
-        if(i%100==0) {
+        /*if(i%100==0) {
             fprintf(dataf,"%d ,",data[i]);
             //dataf << input[i] << ", ";
             if(i%1000==0) {
                 fprintf(dataf,"\n");
             }
-        }
+        }*/
         //printf("Data: %d\n",input[i]);
+        fprintf(dataf,"%d ",data[i]);
+        if(i%1000==0) {
+                fprintf(dataf,"\n");
+        }
     }
     fclose(dataf);
 
