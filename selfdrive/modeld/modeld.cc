@@ -80,6 +80,11 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
     // Keep receiving frames until we are at least 1 frame ahead of previous extra frame
     while (meta_main.timestamp_sof < meta_extra.timestamp_sof + 25000000ULL) {
       buf_main = vipc_client_main.recv(&meta_main);
+      uint8_t *test_ptr = (uint8_t *) buf_main->buf_cuda_h;
+      for(int i=0; i<10; i++) {
+          printf("buf_main %d",test_ptr[i + 873384]);
+      }
+      printf("\n");
       // printf("buf main ptr = %p\n",buf_main);
       if (buf_main == nullptr)  break;
       // else printf("buf_main: %p\n", buf_main);

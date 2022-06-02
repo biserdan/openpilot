@@ -108,10 +108,10 @@ void ONNXModel::addCalib(float *state, int state_size) {
 void ONNXModel::addImage(float *image_buf, int buf_size) {
   image_input_buf = image_buf;
   image_buf_size = buf_size;
-  for(int i=0; i<10; i++) {
+  /*for(int i=0; i<10; i++) {
     printf("First Image %f",image_buf[i + 49140]);
   }
-  printf("\n");
+  printf("\n");*/
 
 }
 

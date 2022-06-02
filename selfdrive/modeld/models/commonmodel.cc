@@ -69,9 +69,21 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
   /*transform_queue(&this->transform, q,
                   yuv_cl, frame_width, frame_height,
                   y_cl, u_cl, v_cl, MODEL_WIDTH, MODEL_HEIGHT, projection);*/
+  /*uint8_t *test_ptr = (uint8_t *) yuv_cl;
+  for(int i=0; i<10; i++) {
+    printf("yuv_cl %d",test_ptr[i + 873384]);
+  }
+  printf("\n");*/
   transform_queue(&this->transform,
                   yuv_cl, frame_width, frame_height,
                   y_cuda_d, u_cuda_d, v_cuda_d, MODEL_WIDTH, MODEL_HEIGHT, projection);
+
+  uint8_t *test_ptr = y_cuda_h;
+  for(int i=0; i<10; i++) {
+    printf("y_cuda_d %d",test_ptr[i + 32768]);
+  }
+  printf("\n");
+  
 
   if (output == NULL) {
     // biserdan: openCL
