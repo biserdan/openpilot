@@ -80,11 +80,11 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
     // Keep receiving frames until we are at least 1 frame ahead of previous extra frame
     while (meta_main.timestamp_sof < meta_extra.timestamp_sof + 25000000ULL) {
       buf_main = vipc_client_main.recv(&meta_main);
-      uint8_t *test_ptr = (uint8_t *) buf_main->y;
+      /*uint8_t *test_ptr = (uint8_t *) buf_main->y;
       for(int i=0; i<10; i++) {
           printf("buf_main %d",test_ptr[i + 873384]);
       }
-      printf("\n");
+      printf("\n");*/
       if (buf_main == nullptr)  break;
     }
 
@@ -170,9 +170,9 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
 }
 
 int main(int argc, char **argv) {
-  test_transform();
+  //test_transform();
   //test_loadyuv();
-  /*if (Hardware::TICI()) {
+  if (Hardware::TICI()) {
     int ret;
     ret = util::set_realtime_priority(54);
     assert(ret == 0);
@@ -218,6 +218,6 @@ int main(int argc, char **argv) {
   }
 
   model_free(&model);
-  CL_CHECK(clReleaseContext(context));*/
+  CL_CHECK(clReleaseContext(context));
   return 0;
 }
