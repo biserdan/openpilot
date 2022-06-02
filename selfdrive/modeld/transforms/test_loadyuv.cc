@@ -53,7 +53,7 @@ void test_loadyuv() {
     checkMsg(cudaHostAlloc((void ** ) &io_buffer_h, 196608*sizeof(float), cudaHostAllocMapped));
     checkMsg(cudaHostGetDevicePointer((void ** ) & io_buffer_d, (void * ) io_buffer_h, 0));
 
-    FILE *inputfy = fopen ("test_yuvinput_y.txt","w");
+    /*FILE *inputfy = fopen ("test_yuvinput_y.txt","w");
     
     fprintf(inputfy,"Input: \n");
     for(int i=0; i<131072; i++) {
@@ -66,7 +66,33 @@ void test_loadyuv() {
             }
         }
     }
-    fclose(inputfy);
+    fclose(inputfy);*/
+
+  FILE * openclyf = fopen("test_yuv_opencl_y.txt", "r");
+  FILE * inputf = fopen("test_yuvinput_y.txt", "w");
+  int x = 0;
+  int y = 0;
+  fscanf (openclyf, "%d", &x);    
+  y_cuda_h[y] = x;
+  fprintf(inputf, "%d ", y_cuda_h[y]);
+  fprintf(inputf,"\n");
+  while (!feof (openclyf))
+    {  
+      if(y<131072 -1){
+      y+=1;
+      fscanf (openclyf, "%d", &x);      
+      y_cuda_h[y] = x;
+      fprintf(inputf, "%d ", y_cuda_h[y]);
+      if(y%1000==0) {
+          fprintf(inputf,"\n");
+        }
+      }
+      else {
+          break;
+      }
+    }
+  fclose(inputf);
+  fclose(openclyf);
 
     /*checkMsg(cudaMemcpy((void * ) test, (void * ) y_cuda_d, 131072, cudaMemcpyDeviceToHost));
 
@@ -82,27 +108,45 @@ void test_loadyuv() {
     }
     fclose(testf);*/
 
-    FILE *inputfu = fopen ("test_yuvinput_u.txt","w");
-    FILE *inputfv = fopen ("test_yuvinput_v.txt","w");
-    fprintf(inputfu,"Input: \n");
-    fprintf(inputfv,"Input: \n");
-    for(int i=0; i<32768; i++) {
-        //inputuv[i] = (i % 256);
-        //u_cuda_h[i] = (i % 151)+100;
-        u_cuda_h[i] = rand() % 256;
-        v_cuda_h[i] = rand() % 256;
-        //v_cuda_h[i] = (i % 201)+150;
-        if(i%100==0) {
-            fprintf(inputfu,"%d ,",u_cuda_h[i]);
-            fprintf(inputfv,"%d ," ,v_cuda_h[i]);
-            if(i%1000==0) {
-                fprintf(inputfu,"\n");
-                fprintf(inputfv,"\n");
-            }
+  FILE * opencluf = fopen("test_yuv_opencl_u.txt", "r");
+  FILE * inputuf = fopen("test_yuvinput_u.txt", "w");
+  FILE * openclvf = fopen("test_yuv_opencl_v.txt", "r");
+  FILE * inputvf = fopen("test_yuvinput_v.txt", "w");
+  int xu = 0;
+  int xv = 0;
+  y = 0;
+  fscanf (opencluf, "%d", &xu);  
+  fscanf (openclvf, "%d", &xv);  
+  u_cuda_h[y] = xu;
+  v_cuda_h[y] = xv;
+  fprintf(inputuf, "%d ", u_cuda_h[y]);
+  fprintf(inputuf,"\n");
+  fprintf(inputvf, "%d ", v_cuda_h[y]);
+  fprintf(inputvf,"\n");
+  while (!feof (opencluf) && !feof (openclvf))
+    {  
+      if(y<32768 -1){
+      y+=1;
+      fscanf (opencluf, "%d", &xu);   
+      fscanf (openclvf, "%d", &xv);   
+      u_cuda_h[y] = xu;
+      v_cuda_h[y] = xv;
+      fprintf(inputuf, "%d ", u_cuda_h[y]);
+      fprintf(inputvf, "%d ", v_cuda_h[y]);
+      if(y%1000==0) {
+          fprintf(inputuf,"\n");
+          fprintf(inputvf,"\n");
         }
+      }
+      else {
+          break;
+      }
     }
-    fclose(inputfu);
-    fclose(inputfv);
+  fclose(inputuf);
+  fclose(inputvf);
+  fclose(opencluf);
+  fclose(openclvf);
+
 
     int global_out_off = 0;
     const int loadys_work_size = (512*256);
@@ -126,7 +170,7 @@ void test_loadyuv() {
     fclose(output_loadys_f);
 
     global_out_off += 131072;
-    int loaduv_work_size = 131072;
+    int loaduv_work_size = 256*128;
 
     start_loaduv(u_cuda_d,io_buffer_d,global_out_off,loaduv_work_size);
     
@@ -149,16 +193,16 @@ void test_loadyuv() {
     FILE *output_loadv_f = fopen ("test_yuvloadv.txt","w");
     fprintf(output_loadv_f,"Output v: \n");
     for(int i=0; i<196608; i++) {
-        /*if(i%100==0) {
+        if(i%100==0) {
             fprintf(output_loadv_f,"%f ,",io_buffer_h[i]);
             if(i%1000==0) {
                 fprintf(output_loadv_f,"\n");
             }
-        }*/
-        fprintf(output_loadv_f,"%f ,",io_buffer_h[i]);
+        }
+        /*fprintf(output_loadv_f,"%f ,",io_buffer_h[i]);
         if(i%8==0) {
                 fprintf(output_loadv_f,"\n");
-        }
+        }*/
     }
     fclose(output_loadv_f);
 

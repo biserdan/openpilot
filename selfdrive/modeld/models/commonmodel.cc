@@ -78,11 +78,11 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
                   yuv_cl, frame_width, frame_height,
                   y_cuda_d, u_cuda_d, v_cuda_d, MODEL_WIDTH, MODEL_HEIGHT, projection);
 
-  uint8_t *test_ptr = y_cuda_h;
+  /*uint8_t *test_ptr = y_cuda_h;
   for(int i=0; i<10; i++) {
     printf("y_cuda_d %d",test_ptr[i + 32768]);
   }
-  printf("\n");
+  printf("\n");*/
   
 
   if (output == NULL) {
@@ -102,8 +102,8 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
     }*/
     //printf("buf_size: %d MODEL_FRAME_SIZE: %d\n",buf_size,MODEL_FRAME_SIZE);
     //buf_size: 393216 MODEL_FRAME_SIZE: 196608
-    // cudaDeviceSynchronize();
-    std::memmove(&input_frames[MODEL_FRAME_SIZE], net_input_cuda_h, MODEL_FRAME_SIZE * sizeof(float));
+    cudaDeviceSynchronize();
+    std::memcpy(&input_frames[MODEL_FRAME_SIZE], net_input_cuda_h, MODEL_FRAME_SIZE * sizeof(float));
     //checkMsg(cudaMemcpy((void *)&input_frames[MODEL_FRAME_SIZE],(void *)net_input_cuda_d,MODEL_FRAME_SIZE * sizeof(float), cudaMemcpyDeviceToHost));
     //checkMsg(cudaMemcpy(&test[MODEL_FRAME_SIZE],&net_input_cuda_h[0],MODEL_FRAME_SIZE * sizeof(float), cudaMemcpyHostToHost));
     //cudaMemcpy((void *)&test_gpu[0],(void *)&test_cpu[0],sizeof(float), cudaMemcpyHostToDevice);

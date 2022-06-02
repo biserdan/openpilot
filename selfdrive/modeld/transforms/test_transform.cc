@@ -54,20 +54,6 @@ void test_transform() {
   checkMsg(cudaHostAlloc((void ** ) & projection_uv_cpu, 3 * 3 * sizeof(float_t), cudaHostAllocMapped));*/
   FILE * openclf = fopen("test_opencl.txt", "r");
   FILE * inputf = fopen("test_input.txt", "w");
-  //fprintf(inputf, "Input: \n");
-  //dataf << "Data: \n";
-  /*for (int i = 0; i < 1928 * 1208 * 3 / 2; i++) {
-    //((u_char*)input+i) = 1;
-    input[i] = (i % 256);
-    if (i % 100 == 0) {
-      fprintf(inputf, "%d ,", input[i]);
-      //dataf << input[i] << ", ";
-      if (i % 1000 == 0) {
-        fprintf(inputf, "\n");
-      }
-    }
-    //printf("Data: %d\n",input[i]);
-  }*/
   int x = 0;
   int y = 0;
 
