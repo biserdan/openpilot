@@ -48,6 +48,7 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
   // biserdan: not needed
   
   if (do_shift) {
+    printf("do shift\n");
     // shift the image in slot 1 to slot 0, then place the new image in slot 1
     global_out_off += (s->width*s->height) + (s->width/2)*(s->height/2)*2;
     // CL_CHECK(clSetKernelArg(s->copy_krnl, 0, sizeof(cl_mem), &out_cl));
@@ -97,5 +98,45 @@ void loadyuv_queue(LoadYUVState* s,uint8_t *y_cuda_d,
 
   CL_CHECK(clEnqueueNDRangeKernel(q, s->loaduv_krnl, 1, NULL,
                                &loaduv_work_size, NULL, 0, 0, NULL));*/
-  start_loaduv(v_cuda_d,out_cuda,global_out_off,loaduv_work_size);
+  // start_loaduv(v_cuda_d,out_cuda,global_out_off,loaduv_work_size);
+
+  // static int test = 0;
+  // char buf[100];
+  // if(do_shift) {
+  //   snprintf(buf, sizeof(buf), "test_output_do_shift_%d.txt",test);
+  //   FILE *output_do_shift_f = fopen (buf,"w");
+  //   fprintf(output_do_shift_f,"Output shift: \n");
+  //   for(int i=0; i<196608*2; i++) {
+  //       /*if(i%100==0) {
+  //           fprintf(output_copy_f,"%f ,",io_buffer_h[i]);
+  //           if(i%1000==0) {
+  //               fprintf(output_copy_f,"\n");
+  //           }
+  //       }*/
+  //       fprintf(output_do_shift_f,"%f ,",out_cuda[i]);
+  //       if(i%8==0) {
+  //               fprintf(output_do_shift_f,"\n");
+  //       }
+  //   }
+  //   fclose(output_do_shift_f);
+  // }
+  // else {
+  //   snprintf(buf, sizeof(buf), "test_output_no_shift_%d.txt",test);
+  //   FILE *output_f = fopen (buf,"w");
+  //   fprintf(output_f,"Output no shift: \n");
+  //   for(int i=0; i<196608; i++) {
+  //       /*if(i%100==0) {
+  //           fprintf(output_copy_f,"%f ,",io_buffer_h[i]);
+  //           if(i%1000==0) {
+  //               fprintf(output_copy_f,"\n");
+  //           }
+  //       }*/
+  //       fprintf(output_f,"%f ,",out_cuda[i]);
+  //       if(i%8==0) {
+  //               fprintf(output_f,"\n");
+  //       }
+  //   }
+  //   fclose(output_f);
+  // }
+  // test += 1;
 }

@@ -248,7 +248,7 @@ void CameraViewWidget::vipcConnected(VisionIpcClient *vipc_client) {
   stream_width = vipc_client->buffers[0].width;
   stream_height = vipc_client->buffers[0].height;
 
-  printf("buffer height: %d, width: %d\n", stream_height, stream_width);
+  //printf("buffer height: %d, width: %d\n", stream_height, stream_width);
 
   for (int i = 0; i < 3; ++i) {
     glBindTexture(GL_TEXTURE_2D, textures[i]);

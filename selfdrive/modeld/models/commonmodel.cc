@@ -96,12 +96,14 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
     //checkMsg(cudaMemcpy(&test[MODEL_FRAME_SIZE],&net_input_cuda_h[0],MODEL_FRAME_SIZE * sizeof(float), cudaMemcpyHostToHost));
     //cudaMemcpy((void *)&test_gpu[0],(void *)&test_cpu[0],sizeof(float), cudaMemcpyHostToDevice);
     //printf("net_input_cuda_h: %f\n",test_gpu[0]);
+    //printf("output NULL\n");
     return &input_frames[0];
   } else {
     loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d, true);
     // loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, *output, true);
     // NOTE: Since thneed is using a different command queue, this clFinish is needed to ensure the image is ready.
     //clFinish(q);
+    printf("output not NULL\n");
     return NULL;
   }
 }

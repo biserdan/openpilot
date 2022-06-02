@@ -242,6 +242,7 @@ void Thneed::find_inputs_outputs() {
     for (int i = 0; i < k->num_args; i++) {
       if (k->name == "zero_pad_image_float" && k->arg_names[i] == "input") {
         cl_mem aa = *(cl_mem*)(k->args[i].data());
+        printf("pushing back aa to input_clmem\n");
         input_clmem.push_back(aa);
 
         size_t sz;
