@@ -13,7 +13,7 @@ using namespace std;
 
 void test_loadyuv() { 
 
-    printf("test_transform\n");
+    printf("test_loadyuv\n");
 
     u_char *inputy = (u_char *)malloc(131072);
     u_char *inputu = (u_char *)malloc(32768);
@@ -198,5 +198,5 @@ void test_loadyuv() {
     CL_CHECK(clReleaseMemObject(u_cl));
     CL_CHECK(clReleaseMemObject(v_cl));
 
-    printf("test_loadyuv done\n");
+    printf("test_loadyuv finished\n");
 }

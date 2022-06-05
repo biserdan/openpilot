@@ -249,5 +249,5 @@ CL_CHECK(clEnqueueReadBuffer(queue, out_v, CL_TRUE, 0, 32768, (void*)output_v, 0
   free(output_y);
   free(output_u);
 
-  printf("Test done\n");
+  printf("test_transform finished\n");
 }
