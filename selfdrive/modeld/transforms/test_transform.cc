@@ -51,32 +51,18 @@ void test_transform() {
     {
         cout << "Unable to open file\n";        
     }*/
-    FILE * openclf = fopen("test_opencl.txt", "r");
     FILE * inputf = fopen("test_input.txt", "w");
-    int x = 0;
-    int y = 0;
-
-    fscanf (openclf, "%d", &x);    
-    input[y] = x;
-    fprintf(inputf, "%d ", input[y]);
-    fprintf(inputf,"\n");
-    while (!feof (openclf))
-        {  
-        if(y<1928 * 1208 * 3 / 2 -1){
-        y+=1;
-        fscanf (openclf, "%d", &x);      
-        input[y] = x;
-        fprintf(inputf, "%d ", input[y]);
-        if(y%1000==0) {
-            fprintf(inputf,"\n");
-            }
+    
+    //fprintf(inputfy,"Input: \n");
+    for(int i=0; i<1928 * 1208 * 3 / 2; i++) {
+        input[i] = rand() % 256;
+        fprintf(inputf,"%d ",input[i]);
+        if(i%1000==0) {
+                fprintf(inputf,"\n");
         }
-        else {
-            break;
-        }
-        }
+    }
     fclose(inputf);
-    fclose(openclf);
+
     //printf("size_of: %lu\n",sizeof(input));
     cl_mem m_y_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));
     cl_mem m_uv_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, 3*3*sizeof(float), NULL, &err));
