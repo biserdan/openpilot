@@ -172,8 +172,8 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
 }
 
 int main(int argc, char **argv) {
-  //test_transform();
-  //test_loadyuv();
+  //test_transform(); // test transform cuda kernel independently
+  //test_loadyuv(); // test loadyuv cuda kernel independently
   if (Hardware::TICI()) {
     int ret;
     ret = util::set_realtime_priority(54);

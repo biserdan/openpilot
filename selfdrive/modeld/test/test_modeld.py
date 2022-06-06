@@ -33,16 +33,16 @@ class TestModeld(unittest.TestCase):
     managed_processes['modeld'].start()
     time.sleep(0.2)
     self.sm.update(1000)
-    print('finish setUp')
+    # print('finish setUp')
 
   def tearDown(self):
-    print('start tearDown')
+    # print('start tearDown')
     managed_processes['modeld'].stop()
     del self.vipc_server
-    print('finish tearDown')
+    # print('finish tearDown')
 
   def _send_frames(self, frame_id, cams=None):
-    print('start send_frames')
+    # print('start send_frames')
     if cams is None:
       cams = ('roadCameraState', 'wideRoadCameraState')
 
@@ -57,19 +57,19 @@ class TestModeld(unittest.TestCase):
       self.pm.send(msg.which(), msg)
       self.vipc_server.send(VIPC_STREAM[msg.which()], IMG_BYTES, cs.frameId,
                             cs.timestampSof, cs.timestampEof)
-    print('stop send_frames')
+    # print('stop send_frames')
     return cs
 
 
   def _wait(self):
-    print('start wait')
+    # print('start wait')
     self.sm.update(5000)
     if self.sm['modelV2'].frameId != self.sm['cameraOdometry'].frameId:
       self.sm.update(1000)
-    print('stop wait')
+    # print('stop wait')
 
   def test_modeld(self):
-    print('test model')
+    # print('test model')
     for n in range(1, 500):
       cs = self._send_frames(n)
       self._wait()
@@ -89,7 +89,7 @@ class TestModeld(unittest.TestCase):
     """
       modeld should only run on consecutive road frames
     """
-    print('start test_dropped_frames')
+    # print('start test_dropped_frames')
     frame_id = -1
     road_frames = list()
     for n in range(1, 50):

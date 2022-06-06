@@ -57,25 +57,23 @@ void test_transform() {
   int x = 0;
   int y = 0;
 
-  fscanf (openclf, "%d", &x);    
+  fscanf(openclf, "%d", & x);
   input[y] = x;
   fprintf(inputf, "%d ", input[y]);
-  fprintf(inputf,"\n");
-  while (!feof (openclf))
-    {  
-      if(y<1928 * 1208 * 3 / 2 -1){
-      y+=1;
-      fscanf (openclf, "%d", &x);      
+  fprintf(inputf, "\n");
+  while (!feof(openclf)) {
+    if (y < 1928 * 1208 * 3 / 2 - 1) {
+      y += 1;
+      fscanf(openclf, "%d", & x);
       input[y] = x;
       fprintf(inputf, "%d ", input[y]);
-      if(y%1000==0) {
-          fprintf(inputf,"\n");
-        }
+      if (y % 1000 == 0) {
+        fprintf(inputf, "\n");
       }
-      else {
-          break;
-      }
+    } else {
+      break;
     }
+  }
   fclose(inputf);
   fclose(openclf);
 
@@ -87,11 +85,11 @@ void test_transform() {
   uint8_t * out_u_d;
   uint8_t * out_v_h;
   uint8_t * out_v_d;
-  float_t *m_y_cuda_h;
+  float_t * m_y_cuda_h;
   float_t * m_y_cuda_d;
-  float_t *m_uv_cuda_h;
+  float_t * m_uv_cuda_h;
   float_t * m_uv_cuda_d;
-  printf("cuda malloc\n");
+  //printf("cuda malloc\n");
   checkMsg(cudaHostAlloc((void ** ) & in_yuv_test_h, 1928 * 1208 * 3 / 2, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void ** ) & in_yuv_test_d, (void * ) in_yuv_test_h, 0));
   //checkMsg(cudaMalloc((void**)&in_yuv_test_d, 1928*1208*3/2 * sizeof(uint8_t)));
@@ -104,18 +102,18 @@ void test_transform() {
   checkMsg(cudaHostAlloc((void ** ) & out_v_h, 32768, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void ** ) & out_v_d, (void * ) out_v_h, 0));
 
-  checkMsg(cudaHostAlloc((void **)&m_y_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
-  checkMsg(cudaHostGetDevicePointer((void **)&m_y_cuda_d, (void *)m_y_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void ** ) & m_y_cuda_h, 3 * 3 * sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void ** ) & m_y_cuda_d, (void * ) m_y_cuda_h, 0));
   //checkMsg(cudaMalloc((void ** ) & m_y_cuda_d, 3 * 3 * sizeof(float_t)));
 
-  checkMsg(cudaHostAlloc((void **)&m_uv_cuda_h, 3*3*sizeof(float), cudaHostAllocMapped));
-  checkMsg(cudaHostGetDevicePointer((void **)&m_uv_cuda_d, (void *)m_uv_cuda_h, 0));
+  checkMsg(cudaHostAlloc((void ** ) & m_uv_cuda_h, 3 * 3 * sizeof(float), cudaHostAllocMapped));
+  checkMsg(cudaHostGetDevicePointer((void ** ) & m_uv_cuda_d, (void * ) m_uv_cuda_h, 0));
   //checkMsg(cudaMalloc((void ** ) & m_uv_cuda_d, 3 * 3 * sizeof(float_t)));
 
   const int zero = 0;
 
   //mat3 projection_y, projection_uv;
-  printf("projection\n");
+  //printf("projection\n");
   for (int i = 0; i < 10; i++) {
     m_y_cuda_h[i] = 1.0 + i;
     m_uv_cuda_h[i] = 0.5 + i;
@@ -124,7 +122,7 @@ void test_transform() {
       printf("projection_y: %d\t%f\n",i,*(projection_y_cpu+i));
       printf("projection_uv: %d\t%f\n",i,*(projection_uv_cpu+i));
   }*/
-  printf("cudaMemcpy\n");
+  //printf("cudaMemcpy\n");
   checkMsg(cudaMemcpy((void * ) in_yuv_test_d, (void * ) input, 1928 * 1208 * 3 / 2, cudaMemcpyHostToDevice));
   // checkMsg(cudaMemcpy((void *)data,(void*)in_yuv_test_d,1928*1208*3/2,cudaMemcpyDeviceToHost));
   //checkMsg(cudaMemcpy((void * ) m_y_cuda_d, (void * ) projection_y_cpu, 3 * 3 * sizeof(float), cudaMemcpyHostToDevice));
@@ -159,7 +157,7 @@ void test_transform() {
   const int out_uv_width = 512 / 2;
   const int out_uv_height = 256 / 2;
 
-  printf("Process test_input\n");
+  //printf("Process test_input\n");
 
   const size_t work_size_y[2] = {
     (size_t) out_y_width,
@@ -169,7 +167,7 @@ void test_transform() {
   start_warpPerspective(in_yuv_test_d, in_y_width, in_y_offset, in_y_height, in_y_width,
     out_y_d, out_y_width, zero, out_y_height, out_y_width, m_y_cuda_d,
     (const size_t * ) & work_size_y);
-printf("finish y\n");
+  //printf("finish y\n");
   //checkMsg(cudaMemcpy((void *)output_y,(void*)out_y_d,131072,cudaMemcpyDeviceToHost));
 
   FILE * outputfy = fopen("test_output_y.txt", "w");
@@ -196,7 +194,7 @@ printf("finish y\n");
   start_warpPerspective(in_yuv_test_d, in_uv_width, in_u_offset, in_uv_height, in_uv_width,
     out_u_d, out_uv_width, zero, out_uv_height, out_uv_width, m_uv_cuda_d,
     (const size_t * ) & work_size_uv);
-printf("finish u\n");
+  //printf("finish u\n");
   FILE * outputfu = fopen("test_output_u.txt", "w");
   fprintf(outputfu, "output_u: \n");
   //dataf << "Data: \n";
@@ -216,7 +214,7 @@ printf("finish u\n");
   start_warpPerspective(in_yuv_test_d, in_uv_width, in_v_offset, in_uv_height, in_uv_width,
     out_v_d, out_uv_width, zero, out_uv_height, out_uv_width, m_uv_cuda_d,
     (const size_t * ) & work_size_uv);
- printf("finish v\n");
+  //printf("finish v\n");
   FILE * outputfv = fopen("test_output_v.txt", "w");
   fprintf(outputfv, "output_u: \n");
   //dataf << "Data: \n";
@@ -237,7 +235,7 @@ printf("finish u\n");
 
   //checkMsg(cudaFreeHost((void *)m_y_cuda_h));
   checkMsg(cudaFreeHost((void * ) m_y_cuda_h));
-  checkMsg(cudaFreeHost((void *)m_uv_cuda_h));
+  checkMsg(cudaFreeHost((void * ) m_uv_cuda_h));
   //checkMsg(cudaFree((void * ) m_uv_cuda_d));
   checkMsg(cudaFreeHost((void * ) input));
   //checkMsg(cudaFreeHost((void *)data));
@@ -249,4 +247,6 @@ printf("finish u\n");
   checkMsg(cudaFreeHost((void * ) out_y_h));
   checkMsg(cudaFreeHost((void * ) out_u_h));
   checkMsg(cudaFreeHost((void * ) out_v_h));
+
+  printf("test_transform finished\n");
 }

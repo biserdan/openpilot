@@ -158,7 +158,6 @@ void transform_queue(Transform* s,
   // printf("&s->m_y_cl uint64_t= %" PRIx64 "\n",*((uint64_t*)s->m_y_cl));
 
   const size_t work_size_uv[2] = {(size_t)out_uv_width, (size_t)out_uv_height};
-
   // CL_CHECK(clSetKernelArg(s->krnl, 1, sizeof(cl_int), &in_uv_width));
   // CL_CHECK(clSetKernelArg(s->krnl, 2, sizeof(cl_int), &in_u_offset));
   // CL_CHECK(clSetKernelArg(s->krnl, 3, sizeof(cl_int), &in_uv_height));

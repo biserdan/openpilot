@@ -40,6 +40,7 @@ def parse_args(add_args=None):
   parser.add_argument('--high_quality', action='store_true')
   parser.add_argument('--town', type=str, default='Town04_Opt')
   parser.add_argument('--spawn_point', dest='num_selected_spawn_point', type=int, default=16)
+  # add arguments for traffic manager
   parser.add_argument('--tm-port', metavar='P', default=8000, type=int, help='Port to communicate with TM (default: 8000)')
   parser.add_argument('-n', '--number-of-vehicles', metavar='N', default=10, type=int, help='Number of vehicles (default: 30)')
   parser.add_argument('--filterv', metavar='PATTERN', default='vehicle.*', help='Filter vehicle model (default: "vehicle.*")')
@@ -347,43 +348,54 @@ class CarlaBridge:
 
     world_map = world.get_map()
 
-    # biserdan openpilot
-
+    # BA22
+    # creates TM instance by a carla client using tm_port to connect
     traffic_manager = client.get_trafficmanager(self._args.tm_port)
+    # vehicle get spawned around hero
     if self._args.respawn:
             traffic_manager.set_respawn_dormant_vehicles(True)
+    # physics are activated when in radius of hero
     if self._args.hybrid:
         traffic_manager.set_hybrid_physics_mode(True)
         traffic_manager.set_hybrid_physics_radius(70.0)
+    # make simulation deterministic
     if self._args.seed is not None:
         traffic_manager.set_random_device_seed(self._args.seed)
 
+    # get blueprints of vehicles with specification from arg filterv and generationv
     blueprints = self.get_actor_blueprints(world, self._args.filterv, self._args.generationv)
 
 
     # disable bicycles in simulation because openpilot don't care about them
     if self._args.safe:
         blueprints = [x for x in blueprints if int(x.get_attribute('number_of_wheels')) == 4]
-
+    
+    # sorts the blueprints based on their id
     blueprints = sorted(blueprints, key=lambda bp: bp.id)
 
+    # gets spawn_points on specified map
     spawn_points = world_map.get_spawn_points()
+    # sets the number of possible spawn_points
     number_of_spawn_points = len(spawn_points)
 
+    # shuffles the spawn_points randomly if number of spawn_points is bigger than number_of_vehicles
     if self._args.number_of_vehicles < number_of_spawn_points:
         print('Number of spawn points: ', number_of_spawn_points)
         print('Number of vehicels: ', self._args.number_of_vehicles)
         random.shuffle(spawn_points)
+    # changes vehicles number to number of spawn points since the number of vehicles exceed spawn points
     elif self._args.number_of_vehicles > number_of_spawn_points:
         msg = 'requested %d vehicles, but could only find %d spawn points'
         logging.warning(msg, self._args.number_of_vehicles, number_of_spawn_points)
         self._args.number_of_vehicles = number_of_spawn_points
 
+    # preparation for spawning vehicles with an autopilot
     SpawnActor = carla.command.SpawnActor
     SetAutopilot = carla.command.SetAutopilot
     FutureActor = carla.command.FutureActor
     synchronous_master = True
 
+    # prepare all vehicles spawning in a list
     batch = []
     for n, transform in enumerate(spawn_points):
         if n >= args.number_of_vehicles:
@@ -400,10 +412,10 @@ class CarlaBridge:
         else:
             blueprint.set_attribute('role_name', 'autopilot')
 
-        # spawn the cars and set their autopilot and light state all together
+        # append the cars to list and set their autopilot and light state all together
         batch.append(SpawnActor(blueprint, transform)
                     .then(SetAutopilot(FutureActor, True, traffic_manager.get_port())))
-
+    # spawn cars with applied settings
     for response in client.apply_batch_sync(batch, synchronous_master):
         if response.error:
             logging.error(response.error)
@@ -412,7 +424,7 @@ class CarlaBridge:
 
     print('spawned %d vehicles' % (len(self._vehicles_list)))
 
-    # Set automatic vehicle lights update if specified
+    # set automatic vehicle lights update if specified
     if args.car_lights_on:
         all_vehicle_actors = world.get_actors(self._vehicles_list)
         for actor in all_vehicle_actors:
@@ -421,11 +433,12 @@ class CarlaBridge:
 
 
 
-    # biseran: openpilot
+    # openpilot
     blueprint_op = blueprint_library.filter('vehicle.tesla.*')[1]
     blueprint_op.set_attribute('role_name', 'hero')
     vehicle_bp = blueprint_op
     spawn_points = world_map.get_spawn_points()
+    
     # default 16
     assert len(spawn_points) > self._args.num_selected_spawn_point, f'''No spawn point {self._args.num_selected_spawn_point}, try a value between 0 and
       {len(spawn_points)} for this town.'''
