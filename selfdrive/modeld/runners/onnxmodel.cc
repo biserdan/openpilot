@@ -113,7 +113,8 @@ void ONNXModel::addImage(float *image_buf, int buf_size) {
 void ONNXModel::addExtra(float *image_buf, int buf_size) {
   extra_input_buf = image_buf;
   extra_buf_size = buf_size;
-   static int test = 0;
+  // test image buffer
+  /*static int test = 0;
   if(test == 0) {
     printf("test run\n");
     FILE *output_addf = fopen ("test_addImage.txt","w");
@@ -128,7 +129,7 @@ void ONNXModel::addExtra(float *image_buf, int buf_size) {
     }
     fclose(output_addf);
     test += 1;
-  }
+  }*/
 }
 
 void ONNXModel::execute() {

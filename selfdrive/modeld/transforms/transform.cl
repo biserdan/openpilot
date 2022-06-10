@@ -63,9 +63,9 @@ __kernel void warpPerspective(__global const uchar * src,
         int itab2 = convert_short_sat_rte( taby*(1.0f-tabx) * INTER_REMAP_COEF_SCALE );
         int itab3 = convert_short_sat_rte( taby*tabx * INTER_REMAP_COEF_SCALE );
 
-        if(dx > 250 && dx < 255 && dy > 130 && dy < 133) {
+        /*if(dx > 250 && dx < 255 && dy > 130 && dy < 133) {
             printf("dx %d dy %d tab0 %d tab1 %d itab2 %d itab3 %d\n",dx,dy,itab0,itab1,itab2,itab3);
-        }
+        }*/
 
         int val = v0 * itab0 +  v1 * itab1 + v2 * itab2 + v3 * itab3;
 
