@@ -50,14 +50,14 @@ CameraInfo cameras_supported[CAMERA_ID_MAX] = {
   },
 };
 
-inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
-{
-  cudaError_t err = cudaGetLastError();
-  if (cudaSuccess != err)
-  {
-    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
-  }
-}
+// inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+// {
+//   cudaError_t err = cudaGetLastError();
+//   if (cudaSuccess != err)
+//   {
+//     fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+//   }
+// }
 
 void camera_open(CameraState *s, bool rear) {
   // empty
@@ -87,17 +87,14 @@ void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
   uint32_t frame_id = 0;
   size_t buf_idx = 0;
 
-  int frameByteSize = sizeof(uint8_t)*853*480*3;
-  void *device_ptr, *host_ptr;
+  int frameByteSize = sizeof(uint8_t)*s->ci.frame_height*s->ci.frame_width*3;
+  void *host_ptr;
   cudaSetDeviceFlags(cudaDeviceMapHost);
-  checkMsgNoFail(cudaHostAlloc((void **)&host_ptr, frameByteSize, cudaHostAllocMapped));
-  cudaHostGetDevicePointer((void **)&device_ptr, (void *) host_ptr , 0);
+  cudaHostAlloc((void **)&host_ptr, frameByteSize, cudaHostAllocWriteCombined);
    
   while (!do_exit) {
     // double start_time = millis_since_boot();
-    // cv::Mat frame_mat, transformed_mat;
-    cv::Mat transformed_mat(480, 864, CV_8UC3, host_ptr);
-    cv::cuda::GpuMat d_transformed_mat(480, 864, CV_8UC3, device_ptr);
+    cv::Mat transformed_mat(s->ci.frame_height, s->ci.frame_width, CV_8UC3, host_ptr);
     cv::Mat frame_mat;
     video_cap >> frame_mat;
     if (frame_mat.empty()) continue;
@@ -110,10 +107,23 @@ void run_camera(CameraState *s, cv::VideoCapture &video_cap, float *ts) {
     s->buf.camera_bufs_metadata[buf_idx] = {.frame_id = frame_id};
 
     auto &buf = s->buf.camera_bufs[buf_idx];
-    // int transformed_size = transformed_mat.total() * transformed_mat.elemSize();
-    // CL_CHECK(clEnqueueWriteBuffer(buf.copy_q, buf.buf_cl, CL_TRUE, 0, transformed_size, transformed_mat.data, 0, NULL, NULL));
-    // checkMsgNoFail(cudaMemcpy(buf.buf_cuda, transformed_mat.data, transformed_size, cudaMemcpyHostToDevice)); 
-    buf.buf_cuda = d_transformed_mat.data;
+    int transformed_size = transformed_mat.total() * transformed_mat.elemSize();
+    buf.buf_cuda_h = transformed_mat.data;
+
+// for debugging purposes: checks concordant content
+/*
+    static int counter = 0;
+    if (counter == 0 ){
+      uint8_t *test_ptr = (uint8_t *) buf.buf_cuda_h;
+      for(int i=0; i<transformed_size; ) {
+          printf("buf_cuda_h %d ",test_ptr[i]);
+          printf("mat.data %d\n",transformed_mat.data[i]);
+          i+=(transformed_size/10);
+      }
+      printf("mat size: %lu\n", frame_mat.total() * frame_mat.elemSize());
+      counter++;
+    }
+*/
     s->buf.queue(buf_idx);
 
     ++frame_id;

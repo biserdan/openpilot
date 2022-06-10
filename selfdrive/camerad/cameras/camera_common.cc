@@ -70,14 +70,14 @@ private:
   bool hdr_;
 };
 
-inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
-{
-  cudaError_t err = cudaGetLastError();
-  if (cudaSuccess != err)
-  {
-    fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
-  }
-}
+// inline void __checkMsgNoFail(cudaError_t code, const char *file, const int line)
+// {
+//   cudaError_t err = cudaGetLastError();
+//   if (cudaSuccess != err)
+//   {
+//     fprintf(stderr, "checkMsg() CUDA warning: %s in file <%s>, line %i : %s.\n", cudaGetErrorString(code), file, line, cudaGetErrorString(err));
+//   }
+// }
 
 //void CameraBuf::init(cl_device_id device_id, cl_context context, CameraState *s, VisionIpcServer * v, int frame_cnt, VisionStreamType init_rgb_type, VisionStreamType init_yuv_type, release_cb init_release_callback) {
 void CameraBuf::init(CameraState *s, VisionIpcServer * v, int frame_cnt, VisionStreamType init_rgb_type, VisionStreamType init_yuv_type, release_cb init_release_callback) {
@@ -155,7 +155,6 @@ bool CameraBuf::acquire() {
   cur_rgb_buf = vipc_server->get_buffer(rgb_type);
   // cl_mem camrabuf_cl = camera_bufs[cur_buf_idx].buf_cl;
   // cl_event event;
-  void *camrabuf_cuda = camera_bufs[cur_buf_idx].buf_cuda;
 
   double start_time = millis_since_boot();
 
@@ -176,15 +175,32 @@ bool CameraBuf::acquire() {
 //     CL_CHECK(clEnqueueCopyBuffer(q, camrabuf_cl, cur_rgb_buf->buf_cl, 0, 0, cur_rgb_buf->len, 0, 0, &event));
 //   }
   assert(rgb_stride == camera_state->ci.frame_stride);
-  // checkMsgNoFail(cudaMemcpy(cur_rgb_buf->buf_cuda, camrabuf_cuda, cur_rgb_buf->len, cudaMemcpyDeviceToDevice));
-  cur_rgb_buf->buf_cuda = camrabuf_cuda;
+  cur_rgb_buf->buf_cuda = camera_bufs[cur_buf_idx].buf_cuda_h;
 
   // clWaitForEvents(1, &event);
   // CL_CHECK(clReleaseEvent(event));
 
   cur_yuv_buf = vipc_server->get_buffer(yuv_type);
-//  rgb2yuv->queue(q, cur_rgb_buf->buf_cl, cur_yuv_buf->buf_cl);
   rgb2yuv->queue(cur_rgb_buf->buf_cuda, cur_yuv_buf->buf_cuda);
+
+// for debugging purposes: checks concordant content
+/*
+  static int counter = 0;
+  
+  if (counter == 0) {
+    uint8_t *test_ptr2 = (uint8_t *) cur_rgb_buf->buf_cuda_h;
+    for(int i=0; i<3052008; ) {
+        printf("cur_rgb_buf %d\n",test_ptr2[i]);
+        i+=(3052008/10);
+    }
+    uint8_t *test_ptr = (uint8_t *) cur_yuv_buf->buf_cuda_h;
+    for(int i=0; i<3052008/2; ) {
+        printf("cur_yuv_buf %d\n",test_ptr[i]);
+        i+=(3052008/20);
+    }
+    counter++; 
+  } 
+*/
 
   cur_frame_data.processing_time = (millis_since_boot() - start_time) / 1000.0;
   // printf("transform processing time: \t%f\n", cur_frame_data.processing_time);
@@ -196,7 +212,7 @@ bool CameraBuf::acquire() {
   };
   cur_rgb_buf->set_frame_id(cur_frame_data.frame_id);
   cur_yuv_buf->set_frame_id(cur_frame_data.frame_id);
-  vipc_server->send(cur_rgb_buf, &extra);
+  //vipc_server->send(cur_rgb_buf, &extra);
   vipc_server->send(cur_yuv_buf, &extra);
 
   return true;

@@ -52,6 +52,7 @@ Rgb2Yuv::~Rgb2Yuv() {
 }
 
 void Rgb2Yuv::queue(void * rgb_cuda, void * yuv_cuda) {
-  printf("width: %d height: %d rgb_stride: %d\n",width,height,rgb_stride);
+  // for debugging purposes
+  // printf("width: %d height: %d rgb_stride: %d\n",width,height,rgb_stride);
   start_kernel(&work_size[0], rgb_cuda, yuv_cuda, width, height, rgb_stride);
 }
