@@ -170,9 +170,9 @@ void run_model(ModelState &model, VisionIpcClient &vipc_client_main, VisionIpcCl
 }
 
 int main(int argc, char **argv) {
-  test_transform();
-  //test_loadyuv();
-  /*if (Hardware::TICI()) {
+  //test_transform();   // test for transform OpenCL
+  //test_loadyuv();     // test for loadyuv OpenCL
+  if (Hardware::TICI()) {
     int ret;
     ret = util::set_realtime_priority(54);
     assert(ret == 0);
@@ -218,6 +218,6 @@ int main(int argc, char **argv) {
   }
 
   model_free(&model);
-  CL_CHECK(clReleaseContext(context));*/
+  CL_CHECK(clReleaseContext(context));
   return 0;
 }
