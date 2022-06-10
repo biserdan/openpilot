@@ -36,22 +36,25 @@ inline void __checkMsgNoFail(cudaError_t code,
 
 void test_transform() {
   printf("test_transform\n");
+
+  // initialize buffer on host memory
   // uint8_t *input = static_cast<uint8_t*>(malloc(1928*1208*3/2));
   uint8_t * input = 0;
   checkMsg(cudaHostAlloc((void ** ) & input, 1928 * 1208 * 3 / 2, cudaHostAllocMapped));
   /*uint8_t *data = 0; 
-  checkMsg(cudaHostAlloc((void**)&data, 1928*1208*3/2 * sizeof(uint8_t), cudaHostAllocMapped));*/
-  /*uint8_t *output_y = 0; 
+  checkMsg(cudaHostAlloc((void**)&data, 1928*1208*3/2 * sizeof(uint8_t), cudaHostAllocMapped));
+  uint8_t *output_y = 0; 
   checkMsg(cudaHostAlloc((void**)&output_y, 131072, cudaHostAllocMapped));
   uint8_t *output_u = 0; 
   checkMsg(cudaHostAlloc((void**)&output_y, 32768, cudaHostAllocMapped));
   uint8_t *output_v = 0; 
-  checkMsg(cudaHostAlloc((void**)&output_v, 32768, cudaHostAllocMapped));*/
-
-  /*float_t * projection_y_cpu = 0;
+  checkMsg(cudaHostAlloc((void**)&output_v, 32768, cudaHostAllocMapped));
+  float_t * projection_y_cpu = 0;
   checkMsg(cudaHostAlloc((void ** ) & projection_y_cpu, 3 * 3 * sizeof(float_t), cudaHostAllocMapped));
   float_t * projection_uv_cpu = 0;
   checkMsg(cudaHostAlloc((void ** ) & projection_uv_cpu, 3 * 3 * sizeof(float_t), cudaHostAllocMapped));*/
+  
+  // read file from OpenCL and fill up input buffer, write data to file
   FILE * openclf = fopen("test_opencl.txt", "r");
   FILE * inputf = fopen("test_input.txt", "w");
   int x = 0;
@@ -77,6 +80,7 @@ void test_transform() {
   fclose(inputf);
   fclose(openclf);
 
+  // define parameters for kernel
   uint8_t * in_yuv_test_h;
   uint8_t * in_yuv_test_d;
   uint8_t * out_y_h;
@@ -89,6 +93,8 @@ void test_transform() {
   float_t * m_y_cuda_d;
   float_t * m_uv_cuda_h;
   float_t * m_uv_cuda_d;
+
+  // initialize buffers shared memory host and device
   //printf("cuda malloc\n");
   checkMsg(cudaHostAlloc((void ** ) & in_yuv_test_h, 1928 * 1208 * 3 / 2, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void ** ) & in_yuv_test_d, (void * ) in_yuv_test_h, 0));
@@ -114,6 +120,8 @@ void test_transform() {
 
   //mat3 projection_y, projection_uv;
   //printf("projection\n");
+
+  // fill up projection matrix for y and uv with data
   for (int i = 0; i < 10; i++) {
     m_y_cuda_h[i] = 1.0 + i;
     m_uv_cuda_h[i] = 0.5 + i;
@@ -123,11 +131,13 @@ void test_transform() {
       printf("projection_uv: %d\t%f\n",i,*(projection_uv_cpu+i));
   }*/
   //printf("cudaMemcpy\n");
+  // copy data from host to device
   checkMsg(cudaMemcpy((void * ) in_yuv_test_d, (void * ) input, 1928 * 1208 * 3 / 2, cudaMemcpyHostToDevice));
   // checkMsg(cudaMemcpy((void *)data,(void*)in_yuv_test_d,1928*1208*3/2,cudaMemcpyDeviceToHost));
   //checkMsg(cudaMemcpy((void * ) m_y_cuda_d, (void * ) projection_y_cpu, 3 * 3 * sizeof(float), cudaMemcpyHostToDevice));
   //checkMsg(cudaMemcpy((void * ) m_uv_cuda_d, (void * ) projection_uv_cpu, 3 * 3 * sizeof(float), cudaMemcpyHostToDevice));
 
+  // ouput file with data in shared buffer
   FILE * dataf = fopen("test_data.txt", "w");
   fprintf(dataf, "Data: \n");
   //dataf << "Data: \n";
@@ -144,6 +154,7 @@ void test_transform() {
   }
   fclose(dataf);
 
+  // initial parameters with fixed values
   const int in_y_width = 1928;
   const int in_y_height = 1208;
   const int in_uv_width = 1928 / 2;
@@ -159,17 +170,20 @@ void test_transform() {
 
   //printf("Process test_input\n");
 
+  // y component: initial two dimensional work size
   const size_t work_size_y[2] = {
     (size_t) out_y_width,
     (size_t) out_y_height
   };
 
+  // y component: start kernel
   start_warpPerspective(in_yuv_test_d, in_y_width, in_y_offset, in_y_height, in_y_width,
     out_y_d, out_y_width, zero, out_y_height, out_y_width, m_y_cuda_d,
     (const size_t * ) & work_size_y);
   //printf("finish y\n");
   //checkMsg(cudaMemcpy((void *)output_y,(void*)out_y_d,131072,cudaMemcpyDeviceToHost));
 
+  // y component: output data to file
   FILE * outputfy = fopen("test_output_y.txt", "w");
   fprintf(outputfy, "output_y: \n");
   //dataf << "Data: \n";
@@ -186,15 +200,19 @@ void test_transform() {
   }
   fclose(outputfy);
 
+  // u and v component: define two dimensional work_size
   const size_t work_size_uv[2] = {
     (size_t) out_uv_width,
     (size_t) out_uv_height
   };
 
+  // u component: start kernel
   start_warpPerspective(in_yuv_test_d, in_uv_width, in_u_offset, in_uv_height, in_uv_width,
     out_u_d, out_uv_width, zero, out_uv_height, out_uv_width, m_uv_cuda_d,
     (const size_t * ) & work_size_uv);
   //printf("finish u\n");
+
+  // u component: output data to file
   FILE * outputfu = fopen("test_output_u.txt", "w");
   fprintf(outputfu, "output_u: \n");
   //dataf << "Data: \n";
@@ -211,10 +229,13 @@ void test_transform() {
   }
   fclose(outputfu);
 
+  // v component: start kernel
   start_warpPerspective(in_yuv_test_d, in_uv_width, in_v_offset, in_uv_height, in_uv_width,
     out_v_d, out_uv_width, zero, out_uv_height, out_uv_width, m_uv_cuda_d,
     (const size_t * ) & work_size_uv);
   //printf("finish v\n");
+
+  // v component: output data to file
   FILE * outputfv = fopen("test_output_v.txt", "w");
   fprintf(outputfv, "output_u: \n");
   //dataf << "Data: \n";
@@ -231,8 +252,10 @@ void test_transform() {
   }
   fclose(outputfv);
 
+  // should not be needed since no other kernels are active
   //cudaDeviceSynchronize();
 
+  // clean up buffers
   //checkMsg(cudaFreeHost((void *)m_y_cuda_h));
   checkMsg(cudaFreeHost((void * ) m_y_cuda_h));
   checkMsg(cudaFreeHost((void * ) m_uv_cuda_h));

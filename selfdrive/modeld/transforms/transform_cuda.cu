@@ -28,7 +28,7 @@ __global__ void warpPerspective(const uint8_t * src,
   //printf("x: %d %d %d\n",blockIdx.x,blockDim.x,threadIdx.x);
   //printf("y: %d %d %d\n",blockIdx.y,blockDim.y,threadIdx.y);
 
-  // indexing in x axis
+  // indexing in x and y axis
   int dx = blockIdx.x * blockDim.x + threadIdx.x;
   int dy = blockIdx.y * blockDim.y + threadIdx.y;
 
