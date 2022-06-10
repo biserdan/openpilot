@@ -35,7 +35,7 @@ inline void __checkMsgNoFail(cudaError_t code,
 }
 
 void test_loadyuv() {
-  printf("Test loadyuv\n");
+  printf("test_loadyuv\n");
 
   // initialize buffers shared memory host and device
   // uint8_t * test = 0;
