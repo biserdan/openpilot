@@ -10,6 +10,7 @@ from multiprocessing import Process, Queue
 from typing import Any
 
 import carla  # pylint: disable=import-error
+from carla import VehicleLightState as vls
 import numpy as np
 import pyopencl as cl
 import pyopencl.array as cl_array
@@ -393,6 +394,7 @@ class CarlaBridge:
     SpawnActor = carla.command.SpawnActor
     SetAutopilot = carla.command.SetAutopilot
     FutureActor = carla.command.FutureActor
+    SetVehicleLightState = carla.command.SetVehicleLightState
     synchronous_master = True
 
     # prepare all vehicles spawning in a list
@@ -412,9 +414,14 @@ class CarlaBridge:
         else:
             blueprint.set_attribute('role_name', 'autopilot')
 
+        light_state = vls.NONE
+        if args.car_lights_on:
+          light_state = vls.Position | vls.LowBeam | vls.LowBeam
+
         # append the cars to list and set their autopilot and light state all together
         batch.append(SpawnActor(blueprint, transform)
-                    .then(SetAutopilot(FutureActor, True, traffic_manager.get_port())))
+                    .then(SetAutopilot(FutureActor, True, traffic_manager.get_port()))
+                    .then(SetVehicleLightState(FutureActor, light_state)))
     # spawn cars with applied settings
     for response in client.apply_batch_sync(batch, synchronous_master):
         if response.error:
@@ -425,10 +432,10 @@ class CarlaBridge:
     print('spawned %d vehicles' % (len(self._vehicles_list)))
 
     # set automatic vehicle lights update if specified
-    if args.car_lights_on:
-        all_vehicle_actors = world.get_actors(self._vehicles_list)
-        for actor in all_vehicle_actors:
-            traffic_manager.update_vehicle_lights(actor, True)
+    # if args.car_lights_on:
+    #    all_vehicle_actors = world.get_actors(self._vehicles_list)
+    #    for actor in all_vehicle_actors:
+    #        traffic_manager.update_vehicle_lights(actor, True)
 
 
 
