@@ -38,12 +38,15 @@ ModelFrame::ModelFrame() {
   checkMsg(cudaMemcpy(test_cpu, test_gpu, sizeof(float), cudaMemcpyDeviceToHost));
   printf("test_cpu=%f\n",test_cpu[0]);*/
 
+
+  // OpenCL buffers
   /*q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
   y_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_WIDTH * MODEL_HEIGHT, NULL, &err));
   u_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
   v_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
   net_input_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_FRAME_SIZE * sizeof(float), NULL, &err));*/
 
+  // CUDA shared memory buffers
   checkMsg(cudaHostAlloc((void **)&y_cuda_h, MODEL_WIDTH * MODEL_HEIGHT, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&y_cuda_d, (void *)y_cuda_h, 0));
   checkMsg(cudaHostAlloc((void **)&u_cuda_h, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), cudaHostAllocMapped));
@@ -53,6 +56,7 @@ ModelFrame::ModelFrame() {
   checkMsg(cudaHostAlloc((void **)&net_input_cuda_h, MODEL_FRAME_SIZE * sizeof(float), cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&net_input_cuda_d, (void *)net_input_cuda_h, 0));
 
+  // CUDA device memory buffers
   /*checkMsg(cudaMalloc((void **)&y_cuda_d,MODEL_WIDTH * MODEL_HEIGHT));
   checkMsg(cudaMalloc((void **)&u_cuda_d,(MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2)));
   checkMsg(cudaMalloc((void **)&v_cuda_d,(MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2)));
@@ -77,6 +81,7 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
   transform_queue(&this->transform,
                   yuv_cl, frame_width, frame_height,
                   y_cuda_d, u_cuda_d, v_cuda_d, MODEL_WIDTH, MODEL_HEIGHT, projection);
+  // wait until all CUDA threads are finished
   cudaDeviceSynchronize();
   /*uint8_t *test_ptr = y_cuda_h;
   for(int i=0; i<10; i++) {
@@ -139,15 +144,17 @@ ModelFrame::~ModelFrame() {
   CL_CHECK(clReleaseMemObject(y_cl));
   CL_CHECK(clReleaseCommandQueue(q));*/
 
-  /*checkMsg(cudaFreeHost((void *)net_input_cuda_h));
-  checkMsg(cudaFreeHost((void *)v_cuda_h));
-  checkMsg(cudaFreeHost((void *)u_cuda_h));
-  checkMsg(cudaFreeHost((void *)y_cuda_h));*/
-
+  // CUDA release buffers
   checkMsg(cudaFreeHost((void *)net_input_cuda_h));
+  checkMsg(cudaFreeHost((void *)y_cuda_h));
+  checkMsg(cudaFreeHost((void *)u_cuda_h));
+  checkMsg(cudaFreeHost((void *)v_cuda_h));
+
+  // CUDA release buffers no check for failure
+  /*cudaFreeHost((void *)net_input_cuda_h);
   cudaFreeHost((void *)y_cuda_h);
   cudaFreeHost((void *)u_cuda_h);
-  cudaFreeHost((void *)v_cuda_h);
+  cudaFreeHost((void *)v_cuda_h);*/
 }
 
 void softmax(const float* input, float* output, size_t len) {
