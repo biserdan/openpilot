@@ -112,7 +112,7 @@ private:
   release_cb release_callback;
 
 public:
-  // cl_command_queue q;
+  // cl_command_queue q; // not needed in CUDA
   FrameMetadata cur_frame_data;
   VisionBuf *cur_rgb_buf;
   VisionBuf *cur_yuv_buf;

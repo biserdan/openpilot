@@ -98,8 +98,8 @@ if arch == "larch64":
   cflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   cxxflags = ["-DQCOM2", "-mcpu=cortex-a57"]
   rpath += ["/usr/local/lib"]
-# NVIDIA Jetson Nano
 
+# support for NVIDIA Jetson Nano
 elif arch == "aarch64":
   cpppath = [
     "#third_party/opencl/include",

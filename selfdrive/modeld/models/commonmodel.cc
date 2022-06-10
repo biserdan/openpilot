@@ -38,14 +38,6 @@ ModelFrame::ModelFrame() {
   checkMsg(cudaMemcpy(test_cpu, test_gpu, sizeof(float), cudaMemcpyDeviceToHost));
   printf("test_cpu=%f\n",test_cpu[0]);*/
 
-
-  // OpenCL buffers
-  /*q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
-  y_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_WIDTH * MODEL_HEIGHT, NULL, &err));
-  u_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
-  v_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, (MODEL_WIDTH / 2) * (MODEL_HEIGHT / 2), NULL, &err));
-  net_input_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, MODEL_FRAME_SIZE * sizeof(float), NULL, &err));*/
-
   // CUDA shared memory buffers
   checkMsg(cudaHostAlloc((void **)&y_cuda_h, MODEL_WIDTH * MODEL_HEIGHT, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void **)&y_cuda_d, (void *)y_cuda_h, 0));
@@ -91,11 +83,9 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
   
 
   if (output == NULL) {
-    // biserdan: openCL
-    // loadyuv_queue(&loadyuv, q, y_cl, u_cl, v_cl, net_input_cl);
-    // biserdan: CUDA
     loadyuv_queue(&loadyuv, y_cuda_d, u_cuda_d, v_cuda_d, net_input_cuda_d);
     cudaDeviceSynchronize();
+    // debugging
     /*printf("y_cuda: ");
     for(int i=0;i<10;i++) {
         printf("%d ",y_cuda_h[i*10000]);
@@ -137,12 +127,7 @@ float* ModelFrame::prepare(uint8_t *yuv_cl, int frame_width, int frame_height, c
 
 ModelFrame::~ModelFrame() {
   transform_destroy(&transform);
-  //loadyuv_destroy(&loadyuv);
-  /*CL_CHECK(clReleaseMemObject(net_input_cl));
-  CL_CHECK(clReleaseMemObject(v_cl));
-  CL_CHECK(clReleaseMemObject(u_cl));
-  CL_CHECK(clReleaseMemObject(y_cl));
-  CL_CHECK(clReleaseCommandQueue(q));*/
+  //loadyuv_destroy(&loadyuv); // not needed since CUDA no buffers in loadyuv
 
   // CUDA release buffers
   checkMsg(cudaFreeHost((void *)net_input_cuda_h));

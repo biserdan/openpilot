@@ -22,14 +22,15 @@
 //   work_size[0] = (width + (width % 4 == 0 ? 0 : (4 - width % 4))) / 4;
 //   work_size[1] = (height + (height % 4 == 0 ? 0 : (4 - height % 4))) / 4;
 // }
-
 Rgb2Yuv::Rgb2Yuv(int width, int height, int rgb_stride) {
   assert(width % 2 == 0 && height % 2 == 0);
 
+  // set parameters for kernel call
   this->width = width;
   this->height = height;
   this->rgb_stride = rgb_stride;
-
+  
+  // define work_size two dimensional for x and y axis
   work_size[0] = (width + (width % 4 == 0 ? 0 : (4 - width % 4))) / 4;
   work_size[1] = (height + (height % 4 == 0 ? 0 : (4 - height % 4))) / 4;
 }
@@ -48,7 +49,7 @@ Rgb2Yuv::Rgb2Yuv(int width, int height, int rgb_stride) {
 // }
 
 Rgb2Yuv::~Rgb2Yuv() {
-
+  // empty since no kernel release in CUDA
 }
 
 void Rgb2Yuv::queue(void * rgb_cuda, void * yuv_cuda) {

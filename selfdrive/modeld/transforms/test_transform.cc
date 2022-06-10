@@ -37,7 +37,7 @@ inline void __checkMsgNoFail(cudaError_t code,
 void test_transform() {
   printf("test_transform\n");
 
-  // initialize buffer on host memory
+  // create buffer on host memory
   // uint8_t *input = static_cast<uint8_t*>(malloc(1928*1208*3/2));
   uint8_t * input = 0;
   checkMsg(cudaHostAlloc((void ** ) & input, 1928 * 1208 * 3 / 2, cudaHostAllocMapped));
@@ -94,7 +94,7 @@ void test_transform() {
   float_t * m_uv_cuda_h;
   float_t * m_uv_cuda_d;
 
-  // initialize buffers shared memory host and device
+  // create buffers shared memory host and device
   //printf("cuda malloc\n");
   checkMsg(cudaHostAlloc((void ** ) & in_yuv_test_h, 1928 * 1208 * 3 / 2, cudaHostAllocMapped));
   checkMsg(cudaHostGetDevicePointer((void ** ) & in_yuv_test_d, (void * ) in_yuv_test_h, 0));

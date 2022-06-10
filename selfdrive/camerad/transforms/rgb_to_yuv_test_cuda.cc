@@ -127,6 +127,7 @@ int main(int argc, char** argv) {
   Rgb2Yuv rgb_to_yuv_state(width,height, width * 3);
 
   int frame_yuv_buf_size = width * height * 3 / 2;
+  // create yuv CUDA device buffer
   void * d_yuv_cuda;
   cudaMalloc((void**)&d_yuv_cuda, frame_yuv_buf_size);
 
@@ -135,7 +136,8 @@ int main(int argc, char** argv) {
   uint8_t *frame_yuv_ptr_y = frame_yuv_buf;
   uint8_t *frame_yuv_ptr_u = frame_yuv_buf + (width * height);
   uint8_t *frame_yuv_ptr_v = frame_yuv_ptr_u + ((width/2) * (height/2));
-
+  
+  // create rgb CUDA device buffer
   uint8_t * d_rgb_cuda;
   cudaMalloc((void**)&d_rgb_cuda, width * height * 3);
 
@@ -158,6 +160,7 @@ int main(int argc, char** argv) {
     double t2 = millis_since_boot();
     //printf("Libyuv: rgb to yuv: %.2fms\n", t2-t1);
 
+    // copy buffer from host to device
     cudaMemcpy(d_rgb_cuda, (void *)rgb_frame, width * height * 3, cudaMemcpyHostToDevice);
 
     // clEnqueueWriteBuffer(q, rgb_cl, CL_TRUE, 0, width * height * 3, (void *)rgb_frame, 0, NULL, NULL);
@@ -174,6 +177,7 @@ int main(int argc, char** argv) {
 
     uint8_t *yyy;
     yyy   = (uint8_t *)malloc(frame_yuv_buf_size);
+    // copy CUDA buffer from device to host
     gpuErrchk(cudaMemcpy(yyy, d_yuv_cuda, frame_yuv_buf_size, cudaMemcpyDeviceToHost)); 
 
     // gpuErrchk(cudaHostAlloc((void **)&yyy, frame_yuv_buf_size, cudaHostAllocMapped));
